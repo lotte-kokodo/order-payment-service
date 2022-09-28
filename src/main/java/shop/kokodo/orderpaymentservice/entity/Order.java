@@ -12,7 +12,6 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -31,13 +30,13 @@ public class Order extends Base {
     @Column(name = "order_id")
     private Long id;
 
-    private Long userId;
+    private Long memberId;
 
     @Enumerated
     private OrderStatus orderStatus;
 
-    private String deliveryName;
-    private String deliveryAddress;
+    private String deliveryMemberName;
+    private String deliveryMemberAddress;
 
     private Integer totalPrice;
 
@@ -45,18 +44,6 @@ public class Order extends Base {
 
     @OneToMany
     @JoinColumn(name = "order_id")
-    private List<Cart> carts = new ArrayList<>();
+    private List<OrderProduct> orderProducts = new ArrayList<>();
 
-//    @Builder
-//    public Order(Long userId, OrderStatus orderStatus, String deliveryName,
-//        String deliveryAddress, Integer totalPrice, LocalDateTime orderDate,
-//        List<Cart> carts) {
-//        this.userId = userId;
-//        this.orderStatus = orderStatus;
-//        this.deliveryName = deliveryName;
-//        this.deliveryAddress = deliveryAddress;
-//        this.totalPrice = totalPrice;
-//        this.orderDate = orderDate;
-//        this.carts = carts;
-//    }
 }

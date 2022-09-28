@@ -1,10 +1,9 @@
 package shop.kokodo.orderpaymentservice.service;
 
-import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import shop.kokodo.orderpaymentservice.entity.Cart;
-import shop.kokodo.orderpaymentservice.message.ResponseMessage;
 import shop.kokodo.orderpaymentservice.repository.interfaces.CartRepository;
 import shop.kokodo.orderpaymentservice.service.interfaces.CartService;
 
@@ -18,9 +17,16 @@ public class CartServiceImpl implements CartService {
         this.cartRepository = cartRepository;
     }
 
-    public Long createCart(Cart cart) {
+    @Transactional
+    public Long createCart(Long memberId, Long productId, Integer qty) {
+        Cart cart = Cart.builder()
+            .memberId(memberId)
+            .productId(productId)
+            .qty(qty)
+            .build();
+
         cartRepository.save(cart);
+
         return cart.getId();
     }
-
 }
