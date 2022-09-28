@@ -8,12 +8,17 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Cart extends Base {
 
     @Id
@@ -27,9 +32,23 @@ public class Cart extends Base {
 
     private Integer unitPrice;
 
+    private Long memberId;
+
     @ManyToOne
     @JoinColumn(name = "order_id", insertable = false, updatable = false)
     private Order order;
 
-
+    public void setOrder(Order order) {
+        this.order = order;
+    }
+//
+//    @Builder
+//    public Cart(Long productId, Integer qty, Integer unitPrice, Long memberId,
+//        Order order) {
+//        this.productId = productId;
+//        this.qty = qty;
+//        this.unitPrice = unitPrice;
+//        this.memberId = memberId;
+//        this.order = order;
+//    }
 }
