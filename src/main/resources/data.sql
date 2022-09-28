@@ -21,13 +21,6 @@ CREATE TABLE `category`
     `name`        varchar(100) NULL
 );
 
-
-# ALTER TABLE `product`
-#     ADD CONSTRAINT `PK_PRODUCT` PRIMARY KEY (`product_id`);
-#
-# ALTER TABLE `category`
-#     ADD CONSTRAINT `PK_CATEGORY` PRIMARY KEY (`category_id`);
-
 ALTER TABLE `product`
     ADD CONSTRAINT `FK_category_TO_product_1` FOREIGN KEY (`category_id`)
         REFERENCES `category` (`category_id`);
