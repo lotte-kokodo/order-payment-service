@@ -2,6 +2,7 @@ package shop.kokodo.orderpaymentservice.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -100,7 +101,9 @@ public class OrderServiceImpl implements OrderService {
 
         // 주문 총 가격 계산
         Integer totalPrice = orderProducts.stream()
-            .mapToInt(OrderProduct::getUnitPrice)
+            .map(OrderProduct::getUnitPrice)
+            .filter(Objects::nonNull)
+            .mapToInt(Integer::intValue)
             .sum();
 
         // 사용자 이름, 주소
