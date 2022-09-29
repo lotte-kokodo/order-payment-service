@@ -1,7 +1,11 @@
 package shop.kokodo.orderpaymentservice.entity;
 
+import static javax.persistence.FetchType.LAZY;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -25,8 +29,9 @@ public class OrderProduct extends Base {
     @Column(name = "order_product_id")
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "order_id", insertable = false, updatable = false)
+    @JsonIgnore
+    @ManyToOne(fetch = LAZY)
+    @JoinColumn(name = "order_id")
     private Order order;
 
     private Long memberId;
