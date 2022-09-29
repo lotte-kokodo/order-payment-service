@@ -15,7 +15,7 @@ import shop.kokodo.orderpaymentservice.entity.Order;
 import shop.kokodo.orderpaymentservice.entity.OrderProduct;
 
 @DataJpaTest
-@DisplayName("[주문]")
+@DisplayName("[주문] Repository")
 class OrderRepositoryTest {
 
     @Autowired

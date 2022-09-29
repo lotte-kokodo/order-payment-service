@@ -1,6 +1,5 @@
 package shop.kokodo.orderpaymentservice.repository.interfaces;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.junit.jupiter.api.DisplayName;
@@ -11,7 +10,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import shop.kokodo.orderpaymentservice.entity.Cart;
 
 @DataJpaTest
-@DisplayName("[장바구니]")
+@DisplayName("[장바구니] Repository")
 class CartRepositoryTest {
 
     @Autowired
