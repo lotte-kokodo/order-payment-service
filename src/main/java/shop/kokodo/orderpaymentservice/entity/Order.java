@@ -3,6 +3,7 @@ package shop.kokodo.orderpaymentservice.entity;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Enumerated;
@@ -42,8 +43,7 @@ public class Order extends Base {
 
     private LocalDateTime orderDate; // 주문 일자
 
-    @OneToMany
-    @JoinColumn(name = "order_id")
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderProduct> orderProducts = new ArrayList<>();
 
 }
