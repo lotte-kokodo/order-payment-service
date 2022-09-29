@@ -62,10 +62,11 @@ class OrderRepositoryTest {
                 .build();
 
             // when
-            Order createdOrder = orderRepository.save(order);
+            orderRepository.save(order);
 
             // then
-            assertNotNull(createdOrder.getId()); // 주문 아이디가 부여됐는지 확인
+            assertNotNull(order.getId()); // 주문 아이디가 부여됐는지 확인
+            order.getOrderProducts().forEach(orderProduct -> assertNotNull(orderProduct.getId()));
         }
 
     }
