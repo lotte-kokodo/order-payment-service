@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import shop.kokodo.orderpaymentservice.dto.response.dto.ProductResponse;
 
 // TODO: Member API 및 Application Name 확인
-@FeignClient(name = "product-service") // product-service 의 application name
+//@FeignClient(name = "product-service") // product-service 의 application name
 public interface ProductServiceClient {
 
     @GetMapping("/products/{productId}")

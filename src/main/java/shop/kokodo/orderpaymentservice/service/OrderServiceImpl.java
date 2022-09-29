@@ -28,22 +28,18 @@ public class OrderServiceImpl implements OrderService {
     private final CartRepository cartRepository;
 
     // FeignClient
-    private final MemberServiceClient memberServiceClient;
-    private final ProductServiceClient productServiceClient;
+//    private final MemberServiceClient memberServiceClient;
+//    private final ProductServiceClient productServiceClient;
 
     @Autowired
     public OrderServiceImpl(
         ModelMapper modelMapper,
         OrderRepository orderRepository,
-        CartRepository cartRepository,
-        MemberServiceClient memberServiceClient,
-        ProductServiceClient productServiceClient) {
+        CartRepository cartRepository) {
 
         this.modelMapper = modelMapper;
         this.orderRepository = orderRepository;
         this.cartRepository = cartRepository;
-        this.memberServiceClient = memberServiceClient;
-        this.productServiceClient = productServiceClient;
     }
 
     @Transactional
@@ -51,8 +47,9 @@ public class OrderServiceImpl implements OrderService {
 
         // TODO: FeignClient 통신 테스트
         // 상품 가격
-        ProductResponse productResponse = productServiceClient.getProduct(productId);
-        Integer unitPrice = productResponse.getUnitPrice();
+//        ProductResponse productResponse = productServiceClient.getProduct(productId);
+//        Integer unitPrice = productResponse.getUnitPrice();
+        Integer unitPrice = 10000;
 
         // 주문 상품 생성
         OrderProduct orderProduct = OrderProduct.builder()
@@ -65,7 +62,9 @@ public class OrderServiceImpl implements OrderService {
 
         // TODO: FeignClient 통신 테스트
         // 사용자 이름, 주소
-        MemberResponse memberResponse = memberServiceClient.getMember(memberId);
+//        MemberResponse memberResponse = memberServiceClient.getMember(memberId);
+        MemberResponse memberResponse = new MemberResponse("NaYeon Kwon",
+            "서울특별시 강남구 가로수길 43");
 
         // 주문 생성
         Order order = Order.builder()
@@ -96,8 +95,8 @@ public class OrderServiceImpl implements OrderService {
             .map(Cart::getProductId)
             .collect(Collectors.toList());;
 
-        List<ProductResponse> productResponses = productServiceClient.getProducts(productIds);
-        modelMapper.map(productResponses, orderProducts);
+//        List<ProductResponse> productResponses = productServiceClient.getProducts(productIds);
+//        modelMapper.map(productResponses, orderProducts);
 
         // 주문 총 가격 계산
         Integer totalPrice = orderProducts.stream()
@@ -107,7 +106,9 @@ public class OrderServiceImpl implements OrderService {
             .sum();
 
         // 사용자 이름, 주소
-        MemberResponse memberResponse = memberServiceClient.getMember(memberId);
+//        MemberResponse memberResponse = memberServiceClient.getMember(memberId);
+        MemberResponse memberResponse = new MemberResponse("NaYeon Kwon",
+            "서울특별시 강남구 가로수길 43");
 
         // 주문 생성
         Order order = Order.builder()
