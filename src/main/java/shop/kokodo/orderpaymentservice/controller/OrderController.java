@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import shop.kokodo.orderpaymentservice.dto.request.OrderRequest;
 import shop.kokodo.orderpaymentservice.dto.response.Response;
 import shop.kokodo.orderpaymentservice.dto.response.dto.IdAndMessageDto;
+import shop.kokodo.orderpaymentservice.dto.response.dto.OrderInformationDto;
 import shop.kokodo.orderpaymentservice.entity.Order;
 import shop.kokodo.orderpaymentservice.message.ResponseMessage;
 import shop.kokodo.orderpaymentservice.service.interfaces.OrderService;
@@ -53,7 +54,8 @@ public class OrderController {
     /* 주문 내역 조회 */
     @GetMapping("/{memberId}")
     public Response orderList(@PathVariable("memberId") Long memberId) {
-        return null;
+        List<OrderInformationDto> orderInformationDto = orderService.getOrderList(memberId);
+        return Response.success(orderInformationDto);
     }
 
     /* 주문 내역 상세 조회 */

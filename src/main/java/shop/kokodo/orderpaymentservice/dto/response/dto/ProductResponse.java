@@ -14,4 +14,8 @@ public class ProductResponse {
     private Long productId;
     private Integer unitPrice;
 
+    private String name;
+    private String displayName;
+    private String thumbnail;
+
 }

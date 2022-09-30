@@ -1,6 +1,7 @@
 package shop.kokodo.orderpaymentservice.service.interfaces;
 
 
+import shop.kokodo.orderpaymentservice.dto.response.dto.OrderInformationDto;
 import shop.kokodo.orderpaymentservice.dto.response.dto.OrderResponse;
 import shop.kokodo.orderpaymentservice.entity.Order;
 import shop.kokodo.orderpaymentservice.entity.OrderProduct;
@@ -16,8 +17,8 @@ public interface OrderService {
     Long orderCartProducts(Long memberId, List<Long> cartIds);
 
     /* 주문 조회 */
-    List<OrderResponse> getOrderList(Long memberId);
+    List<OrderInformationDto> getOrderList(Long memberId);
 
     /* 주문 상세 조회 */
-//    List<OrderProductResponse>
+    List<OrderResponse> getOrderDetailList(Long memberId);
 }

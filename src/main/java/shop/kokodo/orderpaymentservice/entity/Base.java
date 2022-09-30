@@ -17,11 +17,12 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Getter
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Base {
+//@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public abstract class Base {
+//public class Base {
 
     @CreatedDate
-    @Column(updatable = false)
+//    @Column(updatable = false)
     private LocalDateTime createdDate;
 
     @LastModifiedDate
