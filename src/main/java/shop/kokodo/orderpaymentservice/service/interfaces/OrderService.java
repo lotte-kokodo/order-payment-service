@@ -20,5 +20,5 @@ public interface OrderService {
     List<OrderInformationDto> getOrderList(Long memberId);
 
     /* 주문 상세 조회 */
-    List<OrderResponse> getOrderDetailList(Long memberId);
+    List<OrderResponse> getOrderDetailList(Long memberId, Long orderId);
 }
