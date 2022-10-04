@@ -1,4 +1,4 @@
-package shop.kokodo.orderpaymentservice.dto.feign.response;
+package shop.kokodo.orderpaymentservice.feign.response;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

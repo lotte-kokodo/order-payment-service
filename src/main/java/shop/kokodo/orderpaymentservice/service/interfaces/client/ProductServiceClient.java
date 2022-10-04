@@ -5,7 +5,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
-import shop.kokodo.orderpaymentservice.dto.feign.response.FeignResponse;
+import shop.kokodo.orderpaymentservice.feign.response.FeignResponse;
 
 // TODO: Product API 및 Application Name 확인
 @FeignClient(name = "product-service") // product-service 의 application name

@@ -9,11 +9,13 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import shop.kokodo.orderpaymentservice.dto.feign.response.FeignResponse;
+import shop.kokodo.orderpaymentservice.feign.response.FeignResponse;
 import shop.kokodo.orderpaymentservice.dto.response.dto.MemberResponse;
 import shop.kokodo.orderpaymentservice.entity.Cart;
 import shop.kokodo.orderpaymentservice.entity.Order;
 import shop.kokodo.orderpaymentservice.entity.OrderProduct;
+import shop.kokodo.orderpaymentservice.messagequeue.KafkaProducer;
+import shop.kokodo.orderpaymentservice.messagequeue.dto.KafkaDto;
 import shop.kokodo.orderpaymentservice.repository.interfaces.CartRepository;
 import shop.kokodo.orderpaymentservice.repository.interfaces.OrderRepository;
 import shop.kokodo.orderpaymentservice.service.interfaces.OrderService;
@@ -32,17 +34,21 @@ public class OrderServiceImpl implements OrderService {
     private final ProductServiceClient productServiceClient;
 //    private final MemberServiceClient memberServiceClient;
 
+    private final KafkaProducer kafkaProducer;
+
     @Autowired
     public OrderServiceImpl(
         ModelMapper modelMapper,
         OrderRepository orderRepository,
         CartRepository cartRepository,
-        ProductServiceClient productServiceClient) {
+        ProductServiceClient productServiceClient,
+        KafkaProducer kafkaProducer) {
 
         this.modelMapper = modelMapper;
         this.orderRepository = orderRepository;
         this.cartRepository = cartRepository;
         this.productServiceClient = productServiceClient;
+        this.kafkaProducer = kafkaProducer;
     }
 
     @Transactional
@@ -78,6 +84,9 @@ public class OrderServiceImpl implements OrderService {
             .build();
 
         orderRepository.save(order);
+
+        kafkaProducer.send("kokodo.product.de-stock",
+            new KafkaDto.UpdateStock(productId, qty));
 
         return order.getId();
     }
@@ -122,6 +131,12 @@ public class OrderServiceImpl implements OrderService {
             .build();
 
         orderRepository.save(order);
+
+        // 상품 재고 감소
+        carts.forEach(cart -> {
+            kafkaProducer.send("kokodo.product.in-stock",
+                new KafkaDto.UpdateStock(cart.getProductId(), cart.getQty()));
+        });
 
         return order.getId();
     }
