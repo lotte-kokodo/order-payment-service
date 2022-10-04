@@ -6,10 +6,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import shop.kokodo.orderpaymentservice.dto.response.dto.MemberResponse;
 
 // TODO: Member API 및 Application Name 확인
-//@FeignClient(name = "member-service") // member-service 의 application name
+@FeignClient(name = "member-service") // member-service 의 application name
 public interface MemberServiceClient {
 
-    @GetMapping("/members/{memberId}")
+    @GetMapping("/member-service/delivery-info/{memberId}")
     MemberResponse getMember(@PathVariable Long memberId);
 
 }
