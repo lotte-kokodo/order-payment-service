@@ -17,7 +17,7 @@ import shop.kokodo.orderpaymentservice.service.interfaces.OrderService;
 
 @Slf4j
 @RestController
-@RequestMapping("/orders")
+@RequestMapping("/order-service")
 public class OrderController {
 
     private final OrderService orderService;

@@ -9,14 +9,15 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import shop.kokodo.orderpaymentservice.dto.feign.response.FeignResponse;
 import shop.kokodo.orderpaymentservice.dto.response.dto.MemberResponse;
-import shop.kokodo.orderpaymentservice.dto.response.dto.ProductResponse;
 import shop.kokodo.orderpaymentservice.entity.Cart;
 import shop.kokodo.orderpaymentservice.entity.Order;
 import shop.kokodo.orderpaymentservice.entity.OrderProduct;
 import shop.kokodo.orderpaymentservice.repository.interfaces.CartRepository;
 import shop.kokodo.orderpaymentservice.repository.interfaces.OrderRepository;
 import shop.kokodo.orderpaymentservice.service.interfaces.OrderService;
+import shop.kokodo.orderpaymentservice.service.interfaces.client.ProductServiceClient;
 
 @Slf4j
 @Service
@@ -28,18 +29,20 @@ public class OrderServiceImpl implements OrderService {
     private final CartRepository cartRepository;
 
     // FeignClient
+    private final ProductServiceClient productServiceClient;
 //    private final MemberServiceClient memberServiceClient;
-//    private final ProductServiceClient productServiceClient;
 
     @Autowired
     public OrderServiceImpl(
         ModelMapper modelMapper,
         OrderRepository orderRepository,
-        CartRepository cartRepository) {
+        CartRepository cartRepository,
+        ProductServiceClient productServiceClient) {
 
         this.modelMapper = modelMapper;
         this.orderRepository = orderRepository;
         this.cartRepository = cartRepository;
+        this.productServiceClient = productServiceClient;
     }
 
     @Transactional
@@ -47,9 +50,8 @@ public class OrderServiceImpl implements OrderService {
 
         // TODO: FeignClient 통신 테스트
         // 상품 가격
-//        ProductResponse productResponse = productServiceClient.getProduct(productId);
-//        Integer unitPrice = productResponse.getUnitPrice();
-        Integer unitPrice = 10000;
+        FeignResponse.ProductPrice productPrice = productServiceClient.getProduct(productId);
+        Integer unitPrice = productPrice.getPrice();
 
         // 주문 상품 생성
         OrderProduct orderProduct = OrderProduct.builder()
@@ -95,8 +97,8 @@ public class OrderServiceImpl implements OrderService {
             .map(Cart::getProductId)
             .collect(Collectors.toList());;
 
-//        List<ProductResponse> productResponses = productServiceClient.getProducts(productIds);
-//        modelMapper.map(productResponses, orderProducts);
+        List<FeignResponse.ProductPrice> productPrices = productServiceClient.getProducts(productIds);
+        modelMapper.map(productPrices, orderProducts);
 
         // 주문 총 가격 계산
         Integer totalPrice = orderProducts.stream()

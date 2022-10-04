@@ -1,4 +1,4 @@
-package shop.kokodo.orderpaymentservice.service;
+package shop.kokodo.orderpaymentservice.service.interfaces.client;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
