@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import shop.kokodo.orderpaymentservice.dto.response.dto.MemberResponse;
+import shop.kokodo.orderpaymentservice.dto.response.dto.OrderDetailInformationDto;
 import shop.kokodo.orderpaymentservice.dto.response.dto.OrderInformationDto;
 import shop.kokodo.orderpaymentservice.dto.response.dto.OrderResponse;
 import shop.kokodo.orderpaymentservice.entity.*;
@@ -138,42 +139,63 @@ public class OrderServiceImpl implements OrderService {
     public List<OrderInformationDto> getOrderList(Long memberId) {
         //1. memberId로 OrderProduct들 갖고오기
         //2. OrderProduct들로 productId들 갖고오기
-        List<Order> orderList = orderRepository.findByMemberId(memberId);
+        List<Object[]> orderAndOrderProductList = orderProductRepository.findAllByMemberId(memberId);
+
+        log.info("orderAndOrderProductList : " + orderAndOrderProductList.toString());
+        List<OrderProduct> orderProductList = new ArrayList<>();
+        List<Order> orderList = new ArrayList<>();
+        orderAndOrderProductList.stream().forEach(
+                row -> {
+                    orderList.add((Order) row[0]);
+                    orderProductList.add((OrderProduct) row[1]);
+                }
+        );
         log.info("orderList : " + orderList.toString());
-        log.info("orderList -> orderProducts : " + orderList.get(0).getOrderProducts().toString());
-        List<Long> productIdList =
-                orderList.stream()
-                        .map(Order::getOrderProducts)
-                        .flatMap(Collection::stream)
-                        .map(OrderProduct::getProductId)
-                        .collect(Collectors.toList());
-        log.info("orderProductIdList : " + productIdList.toString());
-        //3. productId들로 Product들 갖고오기
-        List<Product> productList = productRepository.findByIdIn(productIdList);
-        log.info("productList : " + productList.get(0).toString());
+        log.info("orderProductList : " + orderProductList.toString());
+
+
+
         //4. Product들을 Response와 합쳐서 보내기
         List<OrderInformationDto> orderInformationDtoList = new ArrayList<>();
-        for(int i=0;i<orderList.size();i++) {
+        for(int i=0;i<orderProductList.size();i++) {
+            Order order = orderList.get(i);
+            if(orderInformationDtoList.size() != 0) {
+                if(order.getId() == orderInformationDtoList.get(orderInformationDtoList.size() - 1).getOrderId()) {
+                    continue;
+                }
+            }
+            List<Long> productIdList =
+                    orderProductList.stream()
+                            .filter(orderProduct -> order.getId().equals(orderProduct.getOrder().getId()))
+                            .map(OrderProduct::getProductId)
+                            .collect(Collectors.toList());
+            log.info("productIdList : " + productIdList.toString());
+
+            //3. productId들로 Product들 갖고오기
+            List<Product> productList = productRepository.findByIdIn(productIdList);
+            log.info("productList : " + productList.toString());
             //주문번호
-            Long orderId = orderList.get(i).getId();
+            Long orderId = order.getId();
             String name = "";
+            String thumbnail = "";
             if(productList.size() != 0) {
                 //제목
-                String orderName = productList.get(i).getDisplayName();
+                String orderName = productList.get(0).getDisplayName();
+                //썸네일
+                thumbnail = productList.get(0).getThumbnail();
                 if(productIdList.size() != 1) {
-                    name = orderName + " 외 " + productIdList.size() + "건";
+                    name = orderName + " 외 " + (productIdList.size() - 1) + "건";
                 }else {
                     name = orderName;
                 }
             }
             //주문시간
-            LocalDateTime orderDate = orderList.get(i).getOrderDate();
-            //썸네일
-            String thumbnail = productList.get(0).getThumbnail();
+            LocalDateTime orderDate = order.getOrderDate();
+
             //결제금액
-            int price = orderList.get(i).getTotalPrice();
+            int price = order.getTotalPrice();
             //주문상태
-            OrderStatus orderStatus = orderList.get(i).getOrderStatus();
+            OrderStatus orderStatus = order.getOrderStatus();
 
             OrderInformationDto orderInformationDto = OrderInformationDto.builder()
                     .orderId(orderId)
@@ -186,14 +208,40 @@ public class OrderServiceImpl implements OrderService {
             orderInformationDtoList.add(orderInformationDto);
         }
 
-
-
         return orderInformationDtoList;
     }
 
     @Override
-    public List<OrderResponse> getOrderDetailList(Long memberId) {
-        return null;
+    public List<OrderDetailInformationDto> getOrderDetailList(Long memberId, Long orderId) {
+        List<OrderProduct> orderProductList = orderProductRepository.findAllByIdAndMemberId(memberId, orderId);
+        log.info("orderProductList : " + orderProductList.toString());
+
+        List<Long> productIdList = orderProductList.stream()
+                .map(OrderProduct::getProductId)
+                .collect(Collectors.toList());
+        log.info("productIdList : " + productIdList.toString());
+
+
+        List<Product> productList = productRepository.findAllById(productIdList);
+        log.info("productList : " + productList.toString());
+
+        List<OrderDetailInformationDto> orderDetailInformationDtoList = new ArrayList<>();
+
+
+        for(int i=0;i<orderProductList.size();i++) {
+            OrderDetailInformationDto orderDetailInformationDto = OrderDetailInformationDto.builder()
+                    .id(orderProductList.get(i).getId())
+                    .name(productList.get(i).getDisplayName())
+                    .orderStatus(orderProductList.get(i).getOrder().getOrderStatus())
+                    .price(orderProductList.get(i).getUnitPrice())
+                    .qty(orderProductList.get(i).getQty())
+                    .thumbnail(productList.get(i).getThumbnail())
+                    .build();
+            orderDetailInformationDtoList.add(orderDetailInformationDto);
+        }
+        log.info("orderDetailInformationDtoList : " + orderDetailInformationDtoList.toString());
+
+        return orderDetailInformationDtoList;
     }
 
 }
