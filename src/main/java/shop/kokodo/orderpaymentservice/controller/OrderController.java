@@ -31,9 +31,10 @@ public class OrderController {
     @PostMapping("/{memberId}/single-product")
     public Response orderSingleProduct(@PathVariable("memberId") Long memberId,
                                         @RequestParam("productId") Long productId,
-                                        @RequestParam("qty") Integer qty) {
+                                        @RequestParam("qty") Integer qty,
+                                        @RequestParam("couponId") Long couponId) {
 
-        Long orderId = orderService.orderSingleProduct(memberId, productId, qty);
+        Long orderId = orderService.orderSingleProduct(memberId, productId, qty, couponId);
 
         return Response.success(new IdAndMessageDto.CreateSuccess(orderId,
             ResponseMessage.CREATE_ORDER_SUCCESS));
@@ -47,8 +48,9 @@ public class OrderController {
                                     @RequestBody OrderRequest.CreateCartOrder req) {
 
         List<Long> cartIds = req.getCartIds();
+        List<Long> couponIds = req.getCouponIds();
 
-        Long orderId = orderService.orderCartProducts(memberId, cartIds);
+        Long orderId = orderService.orderCartProducts(memberId, cartIds, couponIds);
 
         return Response.success(
             new IdAndMessageDto.CreateSuccess(orderId, ResponseMessage.CREATE_ORDER_SUCCESS));

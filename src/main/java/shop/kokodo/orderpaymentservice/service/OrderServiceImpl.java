@@ -2,6 +2,7 @@ package shop.kokodo.orderpaymentservice.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -9,11 +10,12 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import shop.kokodo.orderpaymentservice.feign.response.FeignResponse;
 import shop.kokodo.orderpaymentservice.dto.response.dto.MemberResponse;
 import shop.kokodo.orderpaymentservice.entity.Cart;
 import shop.kokodo.orderpaymentservice.entity.Order;
 import shop.kokodo.orderpaymentservice.entity.OrderProduct;
+import shop.kokodo.orderpaymentservice.feign.response.FeignResponse;
+import shop.kokodo.orderpaymentservice.messagequeue.KafkaMessageType;
 import shop.kokodo.orderpaymentservice.messagequeue.KafkaProducer;
 import shop.kokodo.orderpaymentservice.messagequeue.dto.KafkaDto;
 import shop.kokodo.orderpaymentservice.repository.interfaces.CartRepository;
@@ -52,7 +54,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Transactional
-    public Long orderSingleProduct(Long memberId, Long productId, Integer qty) {
+    public Long orderSingleProduct(Long memberId, Long productId, Integer qty, Long couponId) {
 
         // TODO: FeignClient 통신 테스트
         // 상품 가격
@@ -86,13 +88,17 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(order);
 
         kafkaProducer.send("kokodo.product.de-stock",
-            new KafkaDto.UpdateStock(productId, qty));
+            new KafkaDto.ProductUpdateStockTypeMessage<>(KafkaMessageType.ORDER_SINGLE_PRODUCT,
+                new KafkaDto.ProductUpdateStock(productId, qty)));
+
+        // TODO: 쿠폰 상태 수정 Kafka Listener 토픽 수정
+        kafkaProducer.send("kokodo.coupon.status", new KafkaDto.CouponUpdateStatus(couponId));
 
         return order.getId();
     }
 
     @Transactional
-    public Long orderCartProducts(Long memberId, List<Long> cartIds) {
+    public Long orderCartProducts(Long memberId, List<Long> cartIds, List<Long> couponIds) {
         // '장바구니상품' 조회
         List<Cart> carts = cartRepository.findByIdIn(cartIds);
 
@@ -104,7 +110,7 @@ public class OrderServiceImpl implements OrderService {
         // 단일상품가격(unitPrice) 세팅
         List<Long> productIds = carts.stream()
             .map(Cart::getProductId)
-            .collect(Collectors.toList());;
+            .collect(Collectors.toList());
 
         List<FeignResponse.ProductPrice> productPrices = productServiceClient.getProducts(productIds);
         modelMapper.map(productPrices, orderProducts);
@@ -133,10 +139,17 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(order);
 
         // 상품 재고 감소
-        carts.forEach(cart -> {
-            kafkaProducer.send("kokodo.product.in-stock",
-                new KafkaDto.UpdateStock(cart.getProductId(), cart.getQty()));
-        });
+        // productId (key) - qty (value) Map 생성
+        Map<Long,Integer> productIdQtyMap = carts.stream()
+            .collect(Collectors.toMap(Cart::getProductId, Cart::getQty));
+
+        kafkaProducer.send("kokodo.product.de-stock",
+            new KafkaDto.ProductUpdateStockTypeMessage<>(KafkaMessageType.ORDER_CART_PRODUCT,
+                productIdQtyMap));
+
+        // [key] "couponIds"    [value] Long List
+        // map.get("couponIds")
+        kafkaProducer.send("kokodo.coupon.status", new KafkaDto.CouponUpdateStatusList(couponIds));
 
         return order.getId();
     }

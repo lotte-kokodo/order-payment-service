@@ -17,6 +17,9 @@ public class OrderRequest {
         @NotBlank
         private List<Long> cartIds;
 
+        @NotBlank
+        private List<Long> couponIds;
+
     }
 
 }
