@@ -15,6 +15,7 @@ import shop.kokodo.orderpaymentservice.entity.Cart;
 import shop.kokodo.orderpaymentservice.entity.Order;
 import shop.kokodo.orderpaymentservice.entity.OrderProduct;
 import shop.kokodo.orderpaymentservice.entity.enums.EnumValue;
+import shop.kokodo.orderpaymentservice.entity.enums.order.OrderStatus;
 import shop.kokodo.orderpaymentservice.exception.ExceptionMessage;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse;
 import shop.kokodo.orderpaymentservice.messagequeue.KafkaMessageType;
@@ -89,6 +90,7 @@ public class OrderServiceImpl implements OrderService {
             .totalPrice(unitPrice*qty)
             .orderDate(LocalDateTime.now())
             .orderProducts(List.of(orderProduct))
+            .orderStatus(OrderStatus.ORDER_SUCCESS)
             .build();
 
         orderRepository.save(order);
@@ -132,6 +134,7 @@ public class OrderServiceImpl implements OrderService {
             .totalPrice(totalPrice)
             .orderDate(LocalDateTime.now())
             .orderProducts(orderProducts)
+            .orderStatus(OrderStatus.ORDER_SUCCESS)
             .build();
 
         orderRepository.save(order);

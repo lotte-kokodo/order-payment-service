@@ -3,10 +3,13 @@ package shop.kokodo.orderpaymentservice.service;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import groovy.util.logging.Slf4j;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -20,6 +23,7 @@ import org.modelmapper.ModelMapper;
 import shop.kokodo.orderpaymentservice.entity.Cart;
 import shop.kokodo.orderpaymentservice.entity.Order;
 import shop.kokodo.orderpaymentservice.entity.OrderProduct;
+import shop.kokodo.orderpaymentservice.entity.enums.order.OrderStatus;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.MemberDeliveryInfo;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.ProductPrice;
@@ -32,6 +36,7 @@ import shop.kokodo.orderpaymentservice.service.interfaces.client.ProductServiceC
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("[주문] Service")
+@Slf4j
 class OrderServiceImplTest {
 
     @InjectMocks
@@ -105,8 +110,10 @@ class OrderServiceImplTest {
             Order result = orderService.orderSingleProduct(memberId, productId, qty, couponId);
 
             // then
-            Assertions.assertEquals(result.getTotalPrice(), 75000);
+            assertEquals(result.getTotalPrice(), 75000);
+            assertEquals(result.getOrderStatus(), OrderStatus.ORDER_SUCCESS);
 
+            System.out.println(String.format("[주문상태] %s", OrderStatus.ORDER_SUCCESS));
         }
 
         @Test
@@ -151,7 +158,10 @@ class OrderServiceImplTest {
             Order result = orderService.orderCartProducts(memberId, cartIds, couponIds);
 
             // then
-            Assertions.assertEquals(result.getTotalPrice(), totalPrice);
+            assertEquals(result.getTotalPrice(), totalPrice);
+            assertEquals(result.getOrderStatus(), OrderStatus.ORDER_SUCCESS);
+
+            System.out.println(String.format("[주문상태] %s", OrderStatus.ORDER_SUCCESS));
         }
 
     }
