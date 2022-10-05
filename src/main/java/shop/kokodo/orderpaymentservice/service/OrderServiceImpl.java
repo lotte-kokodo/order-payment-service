@@ -172,6 +172,10 @@ public class OrderServiceImpl implements OrderService {
             log.info("productIdList : " + productIdList.toString());
 
             //3. productId들로 Product들 갖고오기
+            // TODO FeignClient 통신 테스트
+//            ProductServiceClient productServiceClient;
+//            List<Product> productList = productServiceClient.getProducts(productIdList);
+
             List<Product> productList = productRepository.findByIdIn(productIdList);
             log.info("productList : " + productList.toString());
             //주문번호
@@ -221,6 +225,9 @@ public class OrderServiceImpl implements OrderService {
                 .collect(Collectors.toList());
         log.info("productIdList : " + productIdList.toString());
 
+        // TODO FeignClient 통신 테스트
+//      ProductServiceClient productServiceClient;
+//      List<Product> productList = productServiceClient.getProducts(productIdList);
 
         List<Product> productList = productRepository.findAllById(productIdList);
         log.info("productList : " + productList.toString());
