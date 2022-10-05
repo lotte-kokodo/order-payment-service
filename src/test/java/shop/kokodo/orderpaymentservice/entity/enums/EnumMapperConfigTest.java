@@ -14,6 +14,7 @@ import shop.kokodo.orderpaymentservice.entity.enums.payment.PaymentMethod;
 import shop.kokodo.orderpaymentservice.entity.enums.payment.PaymentStatus;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("[EnumMapperConfig]")
 class EnumMapperConfigTest {
 
     static EnumMapper mapper;
