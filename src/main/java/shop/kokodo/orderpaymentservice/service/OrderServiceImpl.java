@@ -6,11 +6,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.message.LeaveGroupResponseData.MemberResponse;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import shop.kokodo.orderpaymentservice.dto.response.dto.MemberResponse;
 import shop.kokodo.orderpaymentservice.entity.Cart;
 import shop.kokodo.orderpaymentservice.entity.Order;
 import shop.kokodo.orderpaymentservice.entity.OrderProduct;
@@ -21,6 +21,7 @@ import shop.kokodo.orderpaymentservice.messagequeue.dto.KafkaDto;
 import shop.kokodo.orderpaymentservice.repository.interfaces.CartRepository;
 import shop.kokodo.orderpaymentservice.repository.interfaces.OrderRepository;
 import shop.kokodo.orderpaymentservice.service.interfaces.OrderService;
+import shop.kokodo.orderpaymentservice.service.interfaces.client.MemberServiceClient;
 import shop.kokodo.orderpaymentservice.service.interfaces.client.ProductServiceClient;
 
 @Slf4j
@@ -34,7 +35,7 @@ public class OrderServiceImpl implements OrderService {
 
     // FeignClient
     private final ProductServiceClient productServiceClient;
-//    private final MemberServiceClient memberServiceClient;
+    private final MemberServiceClient memberServiceClient;
 
     private final KafkaProducer kafkaProducer;
 
@@ -44,17 +45,19 @@ public class OrderServiceImpl implements OrderService {
         OrderRepository orderRepository,
         CartRepository cartRepository,
         ProductServiceClient productServiceClient,
+        MemberServiceClient memberServiceClient,
         KafkaProducer kafkaProducer) {
 
         this.modelMapper = modelMapper;
         this.orderRepository = orderRepository;
         this.cartRepository = cartRepository;
         this.productServiceClient = productServiceClient;
+        this.memberServiceClient = memberServiceClient;
         this.kafkaProducer = kafkaProducer;
     }
 
     @Transactional
-    public Long orderSingleProduct(Long memberId, Long productId, Integer qty, Long couponId) {
+    public Order orderSingleProduct(Long memberId, Long productId, Integer qty, Long couponId) {
 
         // TODO: FeignClient 통신 테스트
         // 상품 가격
@@ -72,20 +75,22 @@ public class OrderServiceImpl implements OrderService {
 
         // TODO: FeignClient 통신 테스트
         // 사용자 이름, 주소
-//        MemberResponse memberResponse = memberServiceClient.getMember(memberId);
-        MemberResponse memberResponse = new MemberResponse("NaYeon Kwon",
-            "서울특별시 강남구 가로수길 43");
+        FeignResponse.MemberDeliveryInfo memberDeliveryInfo = memberServiceClient.getMember(memberId);
+//        MemberResponse memberResponse = new MemberResponse("NaYeon Kwon",
+//            "서울특별시 강남구 가로수길 43");
 
         // 주문 생성
         Order order = Order.builder()
-            .deliveryMemberName(memberResponse.getMemberName())
-            .deliveryMemberAddress(memberResponse.getMemberAddress())
+            .memberId(memberId)
+            .deliveryMemberName(memberDeliveryInfo.getMemberName())
+            .deliveryMemberAddress(memberDeliveryInfo.getMemberAddress())
             .totalPrice(unitPrice*qty)
             .orderDate(LocalDateTime.now())
             .orderProducts(List.of(orderProduct))
             .build();
 
         orderRepository.save(order);
+
 
         kafkaProducer.send("kokodo.product.de-stock",
             new KafkaDto.ProductUpdateStockTypeMessage<>(KafkaMessageType.ORDER_SINGLE_PRODUCT,
@@ -94,43 +99,34 @@ public class OrderServiceImpl implements OrderService {
         // TODO: 쿠폰 상태 수정 Kafka Listener 토픽 수정
         kafkaProducer.send("kokodo.coupon.status", new KafkaDto.CouponUpdateStatus(couponId));
 
-        return order.getId();
+        return order;
     }
 
     @Transactional
-    public Long orderCartProducts(Long memberId, List<Long> cartIds, List<Long> couponIds) {
+    public Order orderCartProducts(Long memberId, List<Long> cartIds, List<Long> couponIds) {
         // '장바구니상품' 조회
         List<Cart> carts = cartRepository.findByIdIn(cartIds);
 
         // 주문 상품 생성
         List<OrderProduct> orderProducts = carts.stream()
-            .map(cart -> modelMapper.map(cart, OrderProduct.class))
+            .map(OrderProduct::convertCartToOrderProduct)
             .collect(Collectors.toList());
-
-        // 단일상품가격(unitPrice) 세팅
-        List<Long> productIds = carts.stream()
-            .map(Cart::getProductId)
-            .collect(Collectors.toList());
-
-        List<FeignResponse.ProductPrice> productPrices = productServiceClient.getProducts(productIds);
-        modelMapper.map(productPrices, orderProducts);
 
         // 주문 총 가격 계산
         Integer totalPrice = orderProducts.stream()
-            .map(OrderProduct::getUnitPrice)
-            .filter(Objects::nonNull)
+            .map(orderProduct -> orderProduct.getUnitPrice() * orderProduct.getQty())
             .mapToInt(Integer::intValue)
             .sum();
 
         // 사용자 이름, 주소
-//        MemberResponse memberResponse = memberServiceClient.getMember(memberId);
-        MemberResponse memberResponse = new MemberResponse("NaYeon Kwon",
-            "서울특별시 강남구 가로수길 43");
+        FeignResponse.MemberDeliveryInfo memberDeliveryInfo = memberServiceClient.getMember(memberId);
+//        FeignResponse.MemberDeliveryInfo memberDeliveryInfo
+//            = new FeignResponse.MemberDeliveryInfo("NaYeon Kwon", "서울특별시 강남구 가로수길 43");
 
         // 주문 생성
         Order order = Order.builder()
-            .deliveryMemberName(memberResponse.getMemberName())
-            .deliveryMemberAddress(memberResponse.getMemberAddress())
+            .deliveryMemberName(memberDeliveryInfo.getMemberName())
+            .deliveryMemberAddress(memberDeliveryInfo.getMemberAddress())
             .totalPrice(totalPrice)
             .orderDate(LocalDateTime.now())
             .orderProducts(orderProducts)
@@ -151,6 +147,6 @@ public class OrderServiceImpl implements OrderService {
         // map.get("couponIds")
         kafkaProducer.send("kokodo.coupon.status", new KafkaDto.CouponUpdateStatusList(couponIds));
 
-        return order.getId();
+        return order;
     }
 }

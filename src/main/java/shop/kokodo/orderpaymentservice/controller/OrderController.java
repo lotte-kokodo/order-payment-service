@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import shop.kokodo.orderpaymentservice.dto.request.OrderRequest;
 import shop.kokodo.orderpaymentservice.dto.response.Response;
 import shop.kokodo.orderpaymentservice.dto.response.dto.IdAndMessageDto;
+import shop.kokodo.orderpaymentservice.entity.Order;
 import shop.kokodo.orderpaymentservice.message.ResponseMessage;
 import shop.kokodo.orderpaymentservice.service.interfaces.OrderService;
 
@@ -34,9 +35,9 @@ public class OrderController {
                                         @RequestParam("qty") Integer qty,
                                         @RequestParam("couponId") Long couponId) {
 
-        Long orderId = orderService.orderSingleProduct(memberId, productId, qty, couponId);
+        Order order = orderService.orderSingleProduct(memberId, productId, qty, couponId);
 
-        return Response.success(new IdAndMessageDto.CreateSuccess(orderId,
+        return Response.success(new IdAndMessageDto.CreateSuccess(order.getId(),
             ResponseMessage.CREATE_ORDER_SUCCESS));
 
     }
@@ -50,10 +51,10 @@ public class OrderController {
         List<Long> cartIds = req.getCartIds();
         List<Long> couponIds = req.getCouponIds();
 
-        Long orderId = orderService.orderCartProducts(memberId, cartIds, couponIds);
+        Order order = orderService.orderCartProducts(memberId, cartIds, couponIds);
 
         return Response.success(
-            new IdAndMessageDto.CreateSuccess(orderId, ResponseMessage.CREATE_ORDER_SUCCESS));
+            new IdAndMessageDto.CreateSuccess(order.getId(), ResponseMessage.CREATE_ORDER_SUCCESS));
     }
 
 }

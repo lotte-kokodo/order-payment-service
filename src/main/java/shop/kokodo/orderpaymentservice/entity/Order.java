@@ -45,5 +45,4 @@ public class Order extends Base {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderProduct> orderProducts = new ArrayList<>();
-
 }
