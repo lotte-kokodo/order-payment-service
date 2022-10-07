@@ -18,12 +18,15 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import shop.kokodo.orderpaymentservice.dto.response.dto.MemberResponse;
+import shop.kokodo.orderpaymentservice.dto.response.dto.OrderInformationDto;
 import shop.kokodo.orderpaymentservice.dto.response.dto.ProductResponse;
 import shop.kokodo.orderpaymentservice.entity.Cart;
 import shop.kokodo.orderpaymentservice.entity.Order;
 import shop.kokodo.orderpaymentservice.entity.OrderProduct;
 import shop.kokodo.orderpaymentservice.repository.interfaces.CartRepository;
+import shop.kokodo.orderpaymentservice.repository.interfaces.OrderProductRepository;
 import shop.kokodo.orderpaymentservice.repository.interfaces.OrderRepository;
+import shop.kokodo.orderpaymentservice.repository.interfaces.ProductRepository;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -45,6 +48,12 @@ class OrderServiceImplTest {
 
     @Mock
     CartRepository cartRepository;
+
+    @Mock
+    OrderProductRepository orderProductRepository;
+
+    @Mock
+    ProductRepository productRepository;
 
     @Spy
     static ModelMapper modelMapper = new ModelMapper();
@@ -125,6 +134,8 @@ class OrderServiceImplTest {
 
     public static MemberResponse memberResponse;
 
+    public static List<Object[]> orderAndOrderProduct = new ArrayList<>();
+
     @BeforeAll
     static void setUp() {
 
@@ -177,8 +188,8 @@ class OrderServiceImplTest {
 
         productIds = List.of(1L, 2L, 3L, 4L);
         for (int i=0; i<productIds.size(); i++) {
-            productResponses.add(new ProductResponse(productIds.get(i),
-                Long.valueOf(i).intValue()*25000));
+//            productResponses.add(new ProductResponse(productIds.get(i),
+//                Long.valueOf(i).intValue()*25000));
         }
         productResponse = productResponses.get(0);
 

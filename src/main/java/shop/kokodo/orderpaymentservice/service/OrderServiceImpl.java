@@ -176,7 +176,7 @@ public class OrderServiceImpl implements OrderService {
 //            ProductServiceClient productServiceClient;
 //            List<Product> productList = productServiceClient.getProducts(productIdList);
 
-            List<Product> productList = productRepository.findByIdIn(productIdList);
+            List<Product> productList = productRepository.findAllByIdIn(productIdList);
             log.info("productList : " + productList.toString());
             //주문번호
             Long orderId = order.getId();
@@ -229,7 +229,7 @@ public class OrderServiceImpl implements OrderService {
 //      ProductServiceClient productServiceClient;
 //      List<Product> productList = productServiceClient.getProducts(productIdList);
 
-        List<Product> productList = productRepository.findAllById(productIdList);
+        List<Product> productList = productRepository.findAllByIdIn(productIdList);
         log.info("productList : " + productList.toString());
 
         List<OrderDetailInformationDto> orderDetailInformationDtoList = new ArrayList<>();
@@ -246,7 +246,10 @@ public class OrderServiceImpl implements OrderService {
                     .build();
             orderDetailInformationDtoList.add(orderDetailInformationDto);
         }
-        log.info("orderDetailInformationDtoList : " + orderDetailInformationDtoList.toString());
+        for(int i=0;i<orderDetailInformationDtoList.size();i++ ){
+            log.info("orderDetailInformationDtoList : " + orderDetailInformationDtoList.get(i).getName());
+        }
+
 
         return orderDetailInformationDtoList;
     }
