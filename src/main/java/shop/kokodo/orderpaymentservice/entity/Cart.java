@@ -25,4 +25,5 @@ public class Cart extends Base {
     private Long memberId;
     private Long productId;
     private Integer qty;
+    private Integer unitPrice;
 }

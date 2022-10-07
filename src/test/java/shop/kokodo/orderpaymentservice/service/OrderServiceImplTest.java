@@ -1,13 +1,16 @@
 package shop.kokodo.orderpaymentservice.service;
 
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import groovy.util.logging.Slf4j;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import org.junit.jupiter.api.BeforeAll;
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -17,37 +20,43 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
-import shop.kokodo.orderpaymentservice.dto.response.dto.MemberResponse;
-import shop.kokodo.orderpaymentservice.dto.response.dto.ProductResponse;
 import shop.kokodo.orderpaymentservice.entity.Cart;
 import shop.kokodo.orderpaymentservice.entity.Order;
 import shop.kokodo.orderpaymentservice.entity.OrderProduct;
+import shop.kokodo.orderpaymentservice.entity.enums.order.OrderStatus;
+import shop.kokodo.orderpaymentservice.feign.response.FeignResponse;
+import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.MemberDeliveryInfo;
+import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.ProductPrice;
+import shop.kokodo.orderpaymentservice.messagequeue.KafkaProducer;
 import shop.kokodo.orderpaymentservice.repository.interfaces.CartRepository;
 import shop.kokodo.orderpaymentservice.repository.interfaces.OrderRepository;
+import shop.kokodo.orderpaymentservice.service.interfaces.client.MemberServiceClient;
+import shop.kokodo.orderpaymentservice.service.interfaces.client.ProductServiceClient;
 
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("[주문] Service")
+@Slf4j
 class OrderServiceImplTest {
 
     @InjectMocks
     OrderServiceImpl orderService;
 
+    @Spy
+    ModelMapper modelMapper;
+
+    @Mock
+    OrderRepository orderRepository;
+    @Mock
+    CartRepository cartRepository;
 
     @Mock
     ProductServiceClient productServiceClient;
-
     @Mock
     MemberServiceClient memberServiceClient;
 
     @Mock
-    OrderRepository orderRepository;
-
-    @Mock
-    CartRepository cartRepository;
-
-    @Spy
-    static ModelMapper modelMapper = new ModelMapper();
+    KafkaProducer kafkaProducer;
 
 
     @Nested
@@ -55,42 +64,104 @@ class OrderServiceImplTest {
     class SuccessCase {
 
         @Test
-        @DisplayName("단일상품 주문")
-        void orderSingleProduct() {
+        @DisplayName("(단일상품) 유효한 상품 아이디가 들어갔을 때 모든 값이 채워진 주문 객체 리턴")
+        void SingleProduct_Input_ValidProductId_Output_OrderObject() {
             // given
             Long memberId = 1L;
-            Long productId = 1L;
-            Integer qty = 250;
+            Long productId = 200L;
+            Integer qty = 15;
+            Long couponId = 1L;
+
+            Integer price = 5000;
+
+            String memberName = "NaYeon Kwon";
+            String memberAddress = "서울특별시 서초구 서초동 1327-33";
+
+
+            // Feign Product
+            FeignResponse.ProductPrice productPrice = new FeignResponse.ProductPrice(productId, price);
+            when(productServiceClient.getProduct(productId))
+                .thenReturn(productPrice);
+
+            // Feign Member
+            FeignResponse.MemberDeliveryInfo memberDeliveryInfo = new FeignResponse.MemberDeliveryInfo(memberName, memberAddress);
+            when(memberServiceClient.getMember(memberId))
+                .thenReturn(memberDeliveryInfo);
+
+            OrderProduct orderProduct = OrderProduct.builder()
+                .memberId(memberId)
+                .productId(productId)
+                .qty(qty)
+                .unitPrice(price)
+                .build();
+
+            Order order = Order.builder()
+                .deliveryMemberName(memberDeliveryInfo.getMemberName())
+                .deliveryMemberAddress(memberDeliveryInfo.getMemberAddress())
+                .totalPrice(price*qty)
+                .orderDate(LocalDateTime.now())
+                .orderProducts(List.of(orderProduct))
+                .build();
+
+            when(orderRepository.save(any(Order.class)))
+                .thenReturn(order);
 
             // when
-            when(productServiceClient.getProduct(productId))
-                .thenReturn(productResponse);
-            when(memberServiceClient.getMember(memberId))
-                .thenReturn(memberResponse);
-            when(orderRepository.save(any(Order.class))).thenReturn(singleProductOrder);
-
-            Long orderId = orderService.orderSingleProduct(memberId, productId, qty);
+            Order result = orderService.orderSingleProduct(memberId, productId, qty, couponId);
 
             // then
-            assertNull(orderId);
+            assertEquals(result.getTotalPrice(), 75000);
+            assertEquals(result.getOrderStatus(), OrderStatus.ORDER_SUCCESS);
+
+            System.out.println(String.format("[주문상태] %s", OrderStatus.ORDER_SUCCESS));
         }
 
         @Test
-        @DisplayName("장바구니상품 주문")
-        void orderCartProducts() {
+        @DisplayName("(장바구니상품) 유효한 상품 아이디가 들어갔을 때 모든 값이 채워진 주문 객체 리턴")
+        void CartProduct_Input_ValidProductId_Output_OrderObject() {
             // given
+
             Long memberId = 1L;
-            List<Long> cartIds = List.of(1L, 2L, 3L, 4L);
+
+            List<Long> productIds = Arrays.asList(1L, 2L, 3L);
+            List<Integer> prices = Arrays.asList(5000, 10000, 15000);
+            List<Integer> quantities = Arrays.asList(1, 2, 3);
+
+            List<Long> cartIds = Arrays.asList(1L, 2L, 3L);
+            List<Long> couponIds = Arrays.asList(1L, 2L, 3L);
+
+            Integer totalPrice = 0;
+            for (int i=0; i<prices.size(); i++) {
+                totalPrice += prices.get(i)*quantities.get(i);
+            }
+
+            List<Cart> carts = new ArrayList<>();
+            for (int i=0; i<cartIds.size(); i++) {
+                carts.add(new Cart(cartIds.get(i), memberId, productIds.get(i), quantities.get(i), prices.get(i)));
+            }
+
+            List<FeignResponse.ProductPrice> productPrices = new ArrayList<>();
+            for (int i=0; i<productIds.size(); i++) {
+                productPrices.add(new ProductPrice(productIds.get(i), prices.get(i)));
+            }
+
+            String memberName = "NaYeon Kwon";
+            String memberAddress = "서울특별시 서초구 서초동 1327-33";
+            FeignResponse.MemberDeliveryInfo memberDeliveryInfo
+                = new MemberDeliveryInfo(memberName, memberAddress);
+
+            when(cartRepository.findByIdIn(cartIds)).thenReturn(carts);
+            when(memberServiceClient.getMember(memberId)).thenReturn(memberDeliveryInfo);
+
 
             // when
-            when(cartRepository.findByIdIn(any())).thenReturn(carts);
-            when(productServiceClient.getProducts(any())).thenReturn(productResponses);
-            when(memberServiceClient.getMember(any())).thenReturn(memberResponse);
-
-            Long orderId = orderService.orderCartProducts(memberId, cartIds);
+            Order result = orderService.orderCartProducts(memberId, cartIds, couponIds);
 
             // then
-            assertNull(orderId);
+            assertEquals(result.getTotalPrice(), totalPrice);
+            assertEquals(result.getOrderStatus(), OrderStatus.ORDER_SUCCESS);
+
+            System.out.println(String.format("[주문상태] %s", OrderStatus.ORDER_SUCCESS));
         }
 
     }
@@ -99,92 +170,9 @@ class OrderServiceImplTest {
     @DisplayName("실패 로직 테스트 케이스")
     class FailureCase {
 
+
+
     }
 
-
-    public static List<OrderProduct> orderProducts = new ArrayList<>();
-    public static OrderProduct orderProduct;
-
-    public static String memberName;
-    public static String memberAddress;
-
-    public static Integer unitPrice;
-    public static Integer qty;
-    public static Integer oneOrderProductTotalPrice;
-    public static Integer cartOrderTotalPrice;
-
-    public static Order singleProductOrder;
-    public static Order cartProductOrder;
-
-    public static List<Cart> carts = new ArrayList<>();
-
-
-    public static ProductResponse productResponse;
-    public static List<Long> productIds = new ArrayList<>();
-    public static List<ProductResponse> productResponses = new ArrayList<>();
-
-    public static MemberResponse memberResponse;
-
-    @BeforeAll
-    static void setUp() {
-
-        for (long i=0; i<3; i++) {
-            OrderProduct orderProduct = OrderProduct.builder()
-                .productId(i)
-                .memberId(i)
-                .qty(Long.valueOf(i).intValue()*100)
-                .unitPrice(Long.valueOf(i).intValue()*25000)
-                .build();
-
-            orderProducts.add(orderProduct);
-        }
-        orderProduct = orderProducts.get(0);
-
-        unitPrice = 35000;
-        qty = 200;
-        oneOrderProductTotalPrice = unitPrice*qty;
-
-        memberName = "NaYeon Kwon";
-        memberAddress = "서울특별시 강남구 가로수길 43";
-
-
-        singleProductOrder = Order.builder()
-            .deliveryMemberName(memberName)
-            .deliveryMemberAddress(memberAddress)
-            .totalPrice(oneOrderProductTotalPrice)
-            .orderDate(LocalDateTime.now())
-            .orderProducts(List.of(orderProduct))
-            .build();
-
-        cartProductOrder = Order.builder()
-            .deliveryMemberName(memberName)
-            .deliveryMemberAddress(memberAddress)
-            .totalPrice(oneOrderProductTotalPrice)
-            .orderDate(LocalDateTime.now())
-            .orderProducts(orderProducts)
-            .build();
-
-
-        for (long i=0; i<3; i++) {
-            Cart cart = Cart.builder()
-                .memberId(i)
-                .productId(i)
-                .qty(Long.valueOf(i).intValue()*100)
-                .build();
-
-            carts.add(cart);
-        }
-
-        productIds = List.of(1L, 2L, 3L, 4L);
-        for (int i=0; i<productIds.size(); i++) {
-            productResponses.add(new ProductResponse(productIds.get(i),
-                Long.valueOf(i).intValue()*25000));
-        }
-        productResponse = productResponses.get(0);
-
-        memberResponse = new MemberResponse("NaYeon Kwon",
-            "서울특별시 강남구 가로수길 43");
-
-    }
 
 }

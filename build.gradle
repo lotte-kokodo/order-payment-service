@@ -31,6 +31,7 @@ dependencies {
 //    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
     implementation 'mysql:mysql-connector-java:8.0.28'
+    implementation 'org.springframework.kafka:spring-kafka'
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'

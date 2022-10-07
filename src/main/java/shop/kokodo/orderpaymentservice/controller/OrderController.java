@@ -12,12 +12,13 @@ import org.springframework.web.bind.annotation.RestController;
 import shop.kokodo.orderpaymentservice.dto.request.OrderRequest;
 import shop.kokodo.orderpaymentservice.dto.response.Response;
 import shop.kokodo.orderpaymentservice.dto.response.dto.IdAndMessageDto;
+import shop.kokodo.orderpaymentservice.entity.Order;
 import shop.kokodo.orderpaymentservice.message.ResponseMessage;
 import shop.kokodo.orderpaymentservice.service.interfaces.OrderService;
 
 @Slf4j
 @RestController
-@RequestMapping("/orders")
+@RequestMapping("/order-service")
 public class OrderController {
 
     private final OrderService orderService;
@@ -31,11 +32,12 @@ public class OrderController {
     @PostMapping("/{memberId}/single-product")
     public Response orderSingleProduct(@PathVariable("memberId") Long memberId,
                                         @RequestParam("productId") Long productId,
-                                        @RequestParam("qty") Integer qty) {
+                                        @RequestParam("qty") Integer qty,
+                                        @RequestParam("couponId") Long couponId) {
 
-        Long orderId = orderService.orderSingleProduct(memberId, productId, qty);
+        Order order = orderService.orderSingleProduct(memberId, productId, qty, couponId);
 
-        return Response.success(new IdAndMessageDto.CreateSuccess(orderId,
+        return Response.success(new IdAndMessageDto.CreateSuccess(order.getId(),
             ResponseMessage.CREATE_ORDER_SUCCESS));
 
     }
@@ -47,11 +49,12 @@ public class OrderController {
                                     @RequestBody OrderRequest.CreateCartOrder req) {
 
         List<Long> cartIds = req.getCartIds();
+        List<Long> couponIds = req.getCouponIds();
 
-        Long orderId = orderService.orderCartProducts(memberId, cartIds);
+        Order order = orderService.orderCartProducts(memberId, cartIds, couponIds);
 
         return Response.success(
-            new IdAndMessageDto.CreateSuccess(orderId, ResponseMessage.CREATE_ORDER_SUCCESS));
+            new IdAndMessageDto.CreateSuccess(order.getId(), ResponseMessage.CREATE_ORDER_SUCCESS));
     }
 
 }
