@@ -1,5 +1,7 @@
 package shop.kokodo.orderpaymentservice.service.interfaces;
 
+import java.util.List;
+import shop.kokodo.orderpaymentservice.dto.response.data.CartResponse.GetCart;
 import shop.kokodo.orderpaymentservice.entity.Cart;
 
 public interface CartService {
@@ -7,4 +9,5 @@ public interface CartService {
     /* 장바구니 상품 생성 (장바구니 담기 기능) */
     Cart createCart(Long memberId, Long productId, Integer qty);
 
+    List<GetCart> getCarts(Long memberId);
 }
