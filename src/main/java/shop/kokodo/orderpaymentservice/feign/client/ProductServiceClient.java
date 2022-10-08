@@ -6,11 +6,9 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse;
 
-@FeignClient(name = "product-service") // application name
-@RequestMapping("/products")
+@FeignClient(name = "product-service", path = "/products") // application name
 public interface ProductServiceClient {
 
     @GetMapping("/unitPrice/{productId}")

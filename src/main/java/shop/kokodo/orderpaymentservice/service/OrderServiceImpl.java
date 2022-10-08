@@ -1,6 +1,7 @@
 package shop.kokodo.orderpaymentservice.service;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -91,13 +92,10 @@ public class OrderServiceImpl implements OrderService {
 
         orderRepository.save(order);
 
-
-        kafkaProducer.send("kokodo.product.de-stock",
-            new KafkaRequest.KafkaMessage<>(KafkaMessageType.ORDER_SINGLE_PRODUCT,
-                new KafkaRequest.ProductUpdateStock(productId, qty)));
+        kafkaProducer.send("kokodo.product.de-stock", new LinkedHashMap<>(){{ put(productId, qty); }});
 
         // TODO: 쿠폰 상태 수정 Kafka Listener 토픽 수정
-        kafkaProducer.send("kokodo.coupon.status", new KafkaRequest.CouponUpdateStatus(couponId));
+        kafkaProducer.send("kokodo.coupon.status", List.of(couponId));
 
         return order;
     }
@@ -139,13 +137,11 @@ public class OrderServiceImpl implements OrderService {
         Map<Long,Integer> productIdQtyMap = carts.stream()
             .collect(Collectors.toMap(Cart::getProductId, Cart::getQty));
 
-        kafkaProducer.send("kokodo.product.de-stock",
-            new KafkaRequest.KafkaMessage<>(KafkaMessageType.ORDER_CART_PRODUCT,
-                productIdQtyMap));
+        kafkaProducer.send("kokodo.product.de-stock", productIdQtyMap);
 
         // [key] "couponIds"    [value] Long List
         // map.get("couponIds")
-        kafkaProducer.send("kokodo.coupon.status", new KafkaRequest.CouponUpdateStatusList(couponIds));
+        kafkaProducer.send("kokodo.coupon.status", couponIds);
 
         return order;
     }

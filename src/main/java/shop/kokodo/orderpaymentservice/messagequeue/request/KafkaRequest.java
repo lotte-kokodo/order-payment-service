@@ -14,6 +14,7 @@ public class KafkaRequest {
     /*
     * 상품
     * */
+
     @AllArgsConstructor
     @Getter
     @ToString
