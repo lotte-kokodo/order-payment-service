@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import shop.kokodo.orderpaymentservice.dto.response.dto.MemberResponse;
+import shop.kokodo.orderpaymentservice.dto.response.dto.OrderDetailInformationDto;
 import shop.kokodo.orderpaymentservice.dto.response.dto.OrderInformationDto;
 import shop.kokodo.orderpaymentservice.dto.response.dto.OrderResponse;
 import shop.kokodo.orderpaymentservice.entity.*;
@@ -148,55 +149,67 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     public List<OrderInformationDto> getOrderList(Long memberId) {
-        // memberId로 OrderProduct들 갖고오기
-        // OrderProduct들로 productId들 갖고오기
-        List<OrderProduct> orderProductList = orderProductRepository.findAllByMemberId(memberId);
-        log.info("orderProductList -> " + orderProductList.toString());
-        // 값을 받아 orderId를 Map형태로 저장
-        Map<Long, Long> orderIdMap = new HashMap<>();
+        //1. memberId로 OrderProduct들 갖고오기
+        //2. OrderProduct들로 productId들 갖고오기
+        List<Object[]> orderAndOrderProductList = orderProductRepository.findAllByMemberId(memberId);
+
+        log.info("orderAndOrderProductList : " + orderAndOrderProductList.toString());
+        List<OrderProduct> orderProductList = new ArrayList<>();
+        List<Order> orderList = new ArrayList<>();
+        orderAndOrderProductList.stream().forEach(
+                row -> {
+                    orderList.add((Order) row[0]);
+                    orderProductList.add((OrderProduct) row[1]);
+                }
+        );
+        log.info("orderList : " + orderList.toString());
+        log.info("orderProductList : " + orderProductList.toString());
 
 
-        List<Long> orderIdList =
-                orderProductList.stream()
-                        .map(OrderProduct::getOrder)
-                        .map(Order::getId)
-                        .collect(Collectors.toList());
-        log.info("orderIdList -> " + orderIdList.toString());
 
-        for (Long orderId : orderIdList) {
-            if (!orderIdMap.containsKey(orderId)) {
-                orderIdMap.put(orderId, 1L);
-            } else {
-                orderIdMap.replace(orderId, orderIdMap.get(orderId) + 1L);
-            }
-        }
-        log.info("orderIdMap -> " + orderIdMap.toString());
-        // productId들로 Product들 갖고오기
-        // Feignclient 사용 대신 test용 내장 table 사용
-        List<Long> productDistinctIdList =
-                orderProductList.stream()
-                        .map(OrderProduct::getProductId)
-                        .distinct()
-                        .collect(Collectors.toList());
-        log.info("productDistinctIdList -> " + productDistinctIdList.toString());
-        Long[] idarray = productDistinctIdList.toArray(new Long[productDistinctIdList.size()]);
-        log.info("idarray : " + idarray.toString());
-        List<Product> productList = productRepository.findAllByIdIn(idarray);
-        log.info("productList -> " + productList.toString());
-        // Product들을 Response와 합쳐서 보내기
+        //4. Product들을 Response와 합쳐서 보내기
         List<OrderInformationDto> orderInformationDtoList = new ArrayList<>();
-        for (OrderProduct orderProduct : orderProductList) {
-            //OrderProduct에서 가져오는 부분
-            Long orderProductId = orderProduct.getId();
+        for(int i=0;i<orderProductList.size();i++) {
+            Order order = orderList.get(i);
+            if(orderInformationDtoList.size() != 0) {
+                if(order.getId() == orderInformationDtoList.get(orderInformationDtoList.size() - 1).getOrderId()) {
+                    continue;
+                }
+            }
+            List<Long> productIdList =
+                    orderProductList.stream()
+                            .filter(orderProduct -> order.getId().equals(orderProduct.getOrder().getId()))
+                            .map(OrderProduct::getProductId)
+                            .collect(Collectors.toList());
+            log.info("productIdList : " + productIdList.toString());
 
-            //Order에서 가져오는 부분
-            Order order = orderProduct.getOrder();
+            //3. productId들로 Product들 갖고오기
+            // TODO FeignClient 통신 테스트
+//            ProductServiceClient productServiceClient;
+//            List<Product> productList = productServiceClient.getProducts(productIdList);
+
+            List<Product> productList = productRepository.findAllByIdIn(productIdList);
+            log.info("productList : " + productList.toString());
             //주문번호
             Long orderId = order.getId();
+            String name = "";
+            String thumbnail = "";
+            if(productList.size() != 0) {
+                //제목
+                String orderName = productList.get(0).getDisplayName();
+                //썸네일
+                thumbnail = productList.get(0).getThumbnail();
+                if(productIdList.size() != 1) {
+                    name = orderName + " 외 " + (productIdList.size() - 1) + "건";
+                }else {
+                    name = orderName;
+                }
+            }
             //주문시간
-            LocalDateTime orderDateTime = order.getOrderDate();
+            LocalDateTime orderDate = order.getOrderDate();
+
             //결제금액
-            Integer price = order.getTotalPrice();
+            int price = order.getTotalPrice();
             //주문상태
             OrderStatus orderStatus = order.getOrderStatus();
 
@@ -228,20 +241,46 @@ public class OrderServiceImpl implements OrderService {
                     .build();
             orderInformationDtoList.add(orderInformationDto);
         }
-        log.info("orderInformationDtoList -> " + orderInformationDtoList.toString());
-        List<OrderInformationDto> result = new ArrayList<>();
-        for(int i=0;i<orderIdList.size();i++) {
-            if(orderIdList.indexOf(orderIdList.get(i)) == orderIdList.lastIndexOf(orderIdList.get(i))) {
-                result.add(orderInformationDtoList.get(i));
-            }
-        }
-        log.info("result -> " + result.toString());
-        return result;
+
+        return orderInformationDtoList;
     }
 
     @Override
-    public List<OrderResponse> getOrderDetailList(Long memberId, Long orderId) {
+    public List<OrderDetailInformationDto> getOrderDetailList(Long memberId, Long orderId) {
+        List<OrderProduct> orderProductList = orderProductRepository.findAllByIdAndMemberId(memberId, orderId);
+        log.info("orderProductList : " + orderProductList.toString());
 
-        return null;
+        List<Long> productIdList = orderProductList.stream()
+                .map(OrderProduct::getProductId)
+                .collect(Collectors.toList());
+        log.info("productIdList : " + productIdList.toString());
+
+        // TODO FeignClient 통신 테스트
+//      ProductServiceClient productServiceClient;
+//      List<Product> productList = productServiceClient.getProducts(productIdList);
+
+        List<Product> productList = productRepository.findAllByIdIn(productIdList);
+        log.info("productList : " + productList.toString());
+
+        List<OrderDetailInformationDto> orderDetailInformationDtoList = new ArrayList<>();
+
+
+        for(int i=0;i<orderProductList.size();i++) {
+            OrderDetailInformationDto orderDetailInformationDto = OrderDetailInformationDto.builder()
+                    .id(orderProductList.get(i).getId())
+                    .name(productList.get(i).getDisplayName())
+                    .orderStatus(orderProductList.get(i).getOrder().getOrderStatus())
+                    .price(orderProductList.get(i).getUnitPrice())
+                    .qty(orderProductList.get(i).getQty())
+                    .thumbnail(productList.get(i).getThumbnail())
+                    .build();
+            orderDetailInformationDtoList.add(orderDetailInformationDto);
+        }
+        for(int i=0;i<orderDetailInformationDtoList.size();i++ ){
+            log.info("orderDetailInformationDtoList : " + orderDetailInformationDtoList.get(i).getName());
+        }
+
+
+        return orderDetailInformationDtoList;
     }
 }

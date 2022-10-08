@@ -11,16 +11,17 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class OrderInformationDto {
-    //order
+
     private Long orderId;
-    //product
+
     private String name;
-    //order
+
     private OrderStatus orderStatus;
-    //product
+
     private int price;
-    //product
+
     private String thumbnail;
-    //order
+
     private LocalDateTime orderDate;
+
 }
