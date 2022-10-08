@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse;
 
-@FeignClient(name = "product-service", path = "/products") // application name
+@FeignClient(name = "product-service", path = "/products/feign") // application name
 public interface ProductServiceClient {
 
     @GetMapping("/unitPrice/{productId}")
