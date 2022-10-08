@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -25,13 +24,13 @@ import shop.kokodo.orderpaymentservice.entity.Order;
 import shop.kokodo.orderpaymentservice.entity.OrderProduct;
 import shop.kokodo.orderpaymentservice.entity.enums.order.OrderStatus;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse;
-import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.MemberDeliveryInfo;
+import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.MemberAddress;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.ProductPrice;
 import shop.kokodo.orderpaymentservice.messagequeue.KafkaProducer;
 import shop.kokodo.orderpaymentservice.repository.interfaces.CartRepository;
 import shop.kokodo.orderpaymentservice.repository.interfaces.OrderRepository;
-import shop.kokodo.orderpaymentservice.service.interfaces.client.MemberServiceClient;
-import shop.kokodo.orderpaymentservice.service.interfaces.client.ProductServiceClient;
+import shop.kokodo.orderpaymentservice.feign.client.MemberServiceClient;
+import shop.kokodo.orderpaymentservice.feign.client.ProductServiceClient;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -74,8 +73,7 @@ class OrderServiceImplTest {
 
             Integer price = 5000;
 
-            String memberName = "NaYeon Kwon";
-            String memberAddress = "서울특별시 서초구 서초동 1327-33";
+            String address = "서울특별시 서초구 서초동 1327-33";
 
 
             // Feign Product
@@ -84,9 +82,9 @@ class OrderServiceImplTest {
                 .thenReturn(productPrice);
 
             // Feign Member
-            FeignResponse.MemberDeliveryInfo memberDeliveryInfo = new FeignResponse.MemberDeliveryInfo(memberName, memberAddress);
-            when(memberServiceClient.getMember(memberId))
-                .thenReturn(memberDeliveryInfo);
+            MemberAddress memberAddress = new MemberAddress(address);
+            when(memberServiceClient.getMemberAddress(memberId))
+                .thenReturn(memberAddress);
 
             OrderProduct orderProduct = OrderProduct.builder()
                 .memberId(memberId)
@@ -96,8 +94,7 @@ class OrderServiceImplTest {
                 .build();
 
             Order order = Order.builder()
-                .deliveryMemberName(memberDeliveryInfo.getMemberName())
-                .deliveryMemberAddress(memberDeliveryInfo.getMemberAddress())
+                .deliveryMemberAddress(memberAddress.getAddress())
                 .totalPrice(price*qty)
                 .orderDate(LocalDateTime.now())
                 .orderProducts(List.of(orderProduct))
@@ -145,13 +142,12 @@ class OrderServiceImplTest {
                 productPrices.add(new ProductPrice(productIds.get(i), prices.get(i)));
             }
 
-            String memberName = "NaYeon Kwon";
-            String memberAddress = "서울특별시 서초구 서초동 1327-33";
-            FeignResponse.MemberDeliveryInfo memberDeliveryInfo
-                = new MemberDeliveryInfo(memberName, memberAddress);
+            String address = "서울특별시 서초구 서초동 1327-33";
+            MemberAddress memberAddress
+                = new MemberAddress(address);
 
             when(cartRepository.findByIdIn(cartIds)).thenReturn(carts);
-            when(memberServiceClient.getMember(memberId)).thenReturn(memberDeliveryInfo);
+            when(memberServiceClient.getMemberAddress(memberId)).thenReturn(memberAddress);
 
 
             // when

@@ -18,11 +18,36 @@ public class FeignResponse {
     @Getter @Setter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class MemberDeliveryInfo {
+    public static class MemberAddress {
 
-        private String memberName;
-        private String memberAddress;
+        private String address;
 
     }
 
+    @Getter @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ProductOfCart {
+        private Long id;
+        private String thumbnail;
+        private String name;
+    }
+
+    @Getter @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CouponRateDiscount {
+        private Long id;
+        private Long rate; // 할인비율
+        private Long productId;
+    }
+
+    @Getter @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CouponFixDiscount {
+        private Long id;
+        private Long price; // 할인가격
+        private Long productId;
+    }
 }

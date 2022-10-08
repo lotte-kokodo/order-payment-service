@@ -14,7 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import shop.kokodo.orderpaymentservice.entity.Cart;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse;
 import shop.kokodo.orderpaymentservice.repository.interfaces.CartRepository;
-import shop.kokodo.orderpaymentservice.service.interfaces.client.ProductServiceClient;
+import shop.kokodo.orderpaymentservice.feign.client.ProductServiceClient;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("[장바구니] Service")

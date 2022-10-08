@@ -1,19 +1,24 @@
-package shop.kokodo.orderpaymentservice.service.interfaces.client;
+package shop.kokodo.orderpaymentservice.feign.client;
 
 import java.util.List;
+import java.util.Map;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse;
 
-// TODO: Product API 및 Application Name 확인
-@FeignClient(name = "product-service") // product-service 의 application name
+@FeignClient(name = "product-service") // application name
+@RequestMapping("/products")
 public interface ProductServiceClient {
 
-    @GetMapping("/product-service/unit-price/{productId}")
+    @GetMapping("/unitPrice/{productId}")
     FeignResponse.ProductPrice getProduct(@PathVariable Long productId);
 
-    @GetMapping("/product-service/unit-price")
+    @GetMapping("/unitPrice")
     List<FeignResponse.ProductPrice> getProducts(@ModelAttribute List<Long> productIds);
+
+    @GetMapping("/cart")
+    Map<Long, FeignResponse.ProductOfCart> getCartProducts(@ModelAttribute List<Long> productIds);
 }

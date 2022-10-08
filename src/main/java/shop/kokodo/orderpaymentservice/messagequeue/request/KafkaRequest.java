@@ -1,12 +1,13 @@
-package shop.kokodo.orderpaymentservice.messagequeue.dto;
+package shop.kokodo.orderpaymentservice.messagequeue.request;
 
 import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.ToString;
 import shop.kokodo.orderpaymentservice.messagequeue.KafkaMessageType;
 
-public class KafkaDto {
+public class KafkaRequest {
 
 
 
@@ -14,6 +15,7 @@ public class KafkaDto {
     * 상품
     * */
     @AllArgsConstructor
+    @Getter
     @ToString
     public static class ProductUpdateStock {
         private Long productId;
@@ -21,15 +23,18 @@ public class KafkaDto {
     }
 
     @AllArgsConstructor
+    @Getter
     @ToString
-    public static class ProductUpdateStockList {
-        private Map<Long, Integer> productIdQtyMap;
+    public static class ProductUpdateStockMap {
+        private Map<Long, Integer> map;
     }
 
     @AllArgsConstructor
-    public static class ProductUpdateStockTypeMessage<T> {
+    @Getter
+    @ToString
+    public static class KafkaMessage<T> {
         private KafkaMessageType type;
-        private T dto;
+        private T data;
     }
 
 
@@ -37,12 +42,14 @@ public class KafkaDto {
     * 쿠폰
     * */
     @AllArgsConstructor
+    @Getter
     @ToString
     public static class CouponUpdateStatus {
         private Long couponId;
     }
 
     @AllArgsConstructor
+    @Getter
     @ToString
     public static class CouponUpdateStatusList {
         private List<Long> couponIds;
