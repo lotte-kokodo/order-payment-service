@@ -6,6 +6,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse;
 
 @FeignClient(name = "product-service", path = "/products/feign") // application name
@@ -18,5 +19,5 @@ public interface ProductServiceClient {
     List<FeignResponse.ProductPrice> getProducts(@ModelAttribute List<Long> productIds);
 
     @GetMapping("/cart")
-    Map<Long, FeignResponse.ProductOfCart> getCartProducts(@ModelAttribute List<Long> productIds);
+    Map<Long, FeignResponse.ProductOfCart> getCartProducts(@RequestParam List<Long> productIds);
 }

@@ -73,15 +73,13 @@ public class CartServiceImpl implements CartService {
         /* 쿠폰 조회 (productId 에 해당되는 상품 적용) */
         // 쿠폰 정책 (비율, 고정금액) 2가지 받아야 한다.
         // 할인비율(비율할인정책), 할인가격(고정할인정책) 모두 보내기
-        Map<Long, CouponRateDiscount> rateDiscountMap = couponServiceClient.getCouponRateDiscounts(productIds);
-        Map<Long, CouponFixDiscount> fixDiscountMap = couponServiceClient.getCouponFixDiscounts(productIds);
+//        Map<Long, CouponRateDiscount> rateDiscountMap = couponServiceClient.getCouponRateDiscounts(productIds);
+//        Map<Long, CouponFixDiscount> fixDiscountMap = couponServiceClient.getCouponFixDiscounts(productIds);
 
         return productIds.stream()
                         .map(productId ->
                                 CartResponse.GetCart.createGetCartResponse(productCartIdMap.get(productId),
-                                                                            cartProductMap.get(productId),
-                                                                            rateDiscountMap.get(productId),
-                                                                            fixDiscountMap.get(productId)))
+                                                                            cartProductMap.get(productId)))
                         .collect(Collectors.toList());
     }
 }
