@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import shop.kokodo.orderpaymentservice.dto.request.OrderRequest;
 import shop.kokodo.orderpaymentservice.dto.response.Response;
-import shop.kokodo.orderpaymentservice.dto.response.data.IdAndMessageDto;
+import shop.kokodo.orderpaymentservice.dto.response.data.ResultMessage;
 import shop.kokodo.orderpaymentservice.entity.Order;
 import shop.kokodo.orderpaymentservice.message.ResponseMessage;
 import shop.kokodo.orderpaymentservice.service.interfaces.OrderService;
@@ -37,8 +37,7 @@ public class OrderController {
 
         Order order = orderService.orderSingleProduct(memberId, productId, qty, couponId);
 
-        return Response.success(new IdAndMessageDto.CreateSuccess(order.getId(),
-            ResponseMessage.CREATE_ORDER_SUCCESS));
+        return Response.success(new ResultMessage(order.getId(), ResponseMessage.CREATE_ORDER_SUCCESS));
 
     }
 
@@ -53,8 +52,7 @@ public class OrderController {
 
         Order order = orderService.orderCartProducts(memberId, cartIds, couponIds);
 
-        return Response.success(
-            new IdAndMessageDto.CreateSuccess(order.getId(), ResponseMessage.CREATE_ORDER_SUCCESS));
+        return Response.success(new ResultMessage(order.getId(), ResponseMessage.CREATE_ORDER_SUCCESS));
     }
 
 }

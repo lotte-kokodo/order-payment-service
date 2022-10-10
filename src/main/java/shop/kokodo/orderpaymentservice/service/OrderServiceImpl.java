@@ -14,16 +14,14 @@ import shop.kokodo.orderpaymentservice.entity.Cart;
 import shop.kokodo.orderpaymentservice.entity.Order;
 import shop.kokodo.orderpaymentservice.entity.OrderProduct;
 import shop.kokodo.orderpaymentservice.entity.enums.order.OrderStatus;
+import shop.kokodo.orderpaymentservice.feign.client.MemberServiceClient;
+import shop.kokodo.orderpaymentservice.feign.client.ProductServiceClient;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.MemberAddress;
-import shop.kokodo.orderpaymentservice.messagequeue.KafkaMessageType;
 import shop.kokodo.orderpaymentservice.messagequeue.KafkaProducer;
-import shop.kokodo.orderpaymentservice.messagequeue.request.KafkaRequest;
 import shop.kokodo.orderpaymentservice.repository.interfaces.CartRepository;
 import shop.kokodo.orderpaymentservice.repository.interfaces.OrderRepository;
 import shop.kokodo.orderpaymentservice.service.interfaces.OrderService;
-import shop.kokodo.orderpaymentservice.feign.client.MemberServiceClient;
-import shop.kokodo.orderpaymentservice.feign.client.ProductServiceClient;
 
 @Slf4j
 @Service

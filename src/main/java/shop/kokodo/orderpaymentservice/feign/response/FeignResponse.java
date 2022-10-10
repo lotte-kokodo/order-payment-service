@@ -36,6 +36,14 @@ public class FeignResponse {
     @Getter @Setter
     @NoArgsConstructor
     @AllArgsConstructor
+    public static class ProductStock {
+        private Long id;
+        private Integer stock;
+    }
+
+    @Getter @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class CouponRateDiscount {
         private Long id;
         private Long rate; // 할인비율

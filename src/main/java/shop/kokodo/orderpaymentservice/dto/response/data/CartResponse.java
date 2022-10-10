@@ -45,4 +45,14 @@ public class CartResponse {
 
     }
 
+
+    @Getter @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class UpdateCartQty {
+        private Long id;
+        private Integer qtyAvailable;
+    }
+
 }

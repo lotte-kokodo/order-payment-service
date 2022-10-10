@@ -20,4 +20,8 @@ public interface ProductServiceClient {
 
     @GetMapping("/cart")
     Map<Long, FeignResponse.ProductOfCart> getCartProducts(@RequestParam List<Long> productIds);
+
+    @GetMapping("/stock/{productId}")
+    FeignResponse.ProductStock getProductStock(@PathVariable Long productId);
+
 }
