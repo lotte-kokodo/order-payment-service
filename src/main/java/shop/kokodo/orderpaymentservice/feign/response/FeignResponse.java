@@ -36,6 +36,26 @@ public class FeignResponse {
     @Getter @Setter
     @NoArgsConstructor
     @AllArgsConstructor
+    public static class ProductOfOrderSheet {
+        private Long id;
+        private String thumbnail;
+        private String name;
+        private Integer price;
+    }
+
+    @Getter @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MemberOfOrderSheet {
+        private String name;
+        private String email;
+        private String phoneNumber;
+        private String address;
+    }
+
+    @Getter @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class ProductStock {
         private Long id;
         private Integer stock;

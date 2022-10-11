@@ -10,6 +10,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestParam;
+import shop.kokodo.orderpaymentservice.dto.response.data.OrderResponse.OrderSheet;
 import shop.kokodo.orderpaymentservice.entity.Cart;
 import shop.kokodo.orderpaymentservice.entity.Order;
 import shop.kokodo.orderpaymentservice.entity.OrderProduct;
@@ -18,6 +20,8 @@ import shop.kokodo.orderpaymentservice.feign.client.MemberServiceClient;
 import shop.kokodo.orderpaymentservice.feign.client.ProductServiceClient;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.MemberAddress;
+import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.MemberOfOrderSheet;
+import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.ProductOfOrderSheet;
 import shop.kokodo.orderpaymentservice.messagequeue.KafkaProducer;
 import shop.kokodo.orderpaymentservice.repository.interfaces.CartRepository;
 import shop.kokodo.orderpaymentservice.repository.interfaces.OrderRepository;
@@ -142,5 +146,19 @@ public class OrderServiceImpl implements OrderService {
         kafkaProducer.send("kokodo.coupon.status", couponIds);
 
         return order;
+    }
+
+    @Override
+    public OrderSheet getOrderSheet(Long memberId, @RequestParam List<Long> productIds) {
+        // 주문서 상품 정보 요청
+        List<ProductOfOrderSheet> products = productServiceClient.getOrderSheetProducts(productIds);
+
+        // 사용자 정보 요청
+        MemberOfOrderSheet member = memberServiceClient.getMemberOrderInfo(memberId);
+
+        return OrderSheet.builder()
+            .productInfos(products)
+            .memberInfo(member)
+            .build();
     }
 }

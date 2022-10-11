@@ -5,10 +5,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse;
 
-@FeignClient(name = "member-service", path = "/members") // application name
+@FeignClient(name = "member-service", path = "/members/feign") // application name
 public interface MemberServiceClient {
 
-    @GetMapping("/feign/address")
+    @GetMapping("/address")
     FeignResponse.MemberAddress getMemberAddress(@RequestHeader Long memberId);
 
+    @GetMapping("/orderInfo")
+    FeignResponse.MemberOfOrderSheet getMemberOrderInfo(@RequestHeader Long memberId);
 }
