@@ -2,6 +2,7 @@ package shop.kokodo.orderpaymentservice.entity;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -11,20 +12,21 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import shop.kokodo.orderpaymentservice.entity.enums.order.OrderStatus;
+import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.MemberDeliveryInfo;
 
 @Entity
-@Getter
-@AllArgsConstructor
+@Getter @Setter
 @NoArgsConstructor
 @Table(name = "orders")
-@Builder
 public class Order extends Base {
 
     @Id
@@ -46,4 +48,20 @@ public class Order extends Base {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderProduct> orderProducts = new ArrayList<>();
+
+    @Builder
+    public Order(Long memberId,
+        OrderStatus orderStatus, String deliveryMemberName, String deliveryMemberAddress,
+        Integer totalPrice, LocalDateTime orderDate,
+        List<OrderProduct> orderProducts) {
+        this.memberId = memberId;
+        this.orderStatus = orderStatus;
+        this.deliveryMemberName = deliveryMemberName;
+        this.deliveryMemberAddress = deliveryMemberAddress;
+        this.totalPrice = totalPrice;
+        this.orderDate = orderDate;
+        for (OrderProduct orderProduct : orderProducts) {
+            this.orderProducts.add(orderProduct);
+        }
+    }
 }

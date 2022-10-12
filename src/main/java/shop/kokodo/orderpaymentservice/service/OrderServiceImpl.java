@@ -1,6 +1,7 @@
 package shop.kokodo.orderpaymentservice.service;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +60,6 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public Order orderSingleProduct(Long memberId, Long productId, Integer qty, Long couponId) {
 
-        // TODO: FeignClient 통신 테스트
         // 상품 가격
         FeignResponse.ProductPrice productPrice = productServiceClient.getProduct(productId);
         Integer unitPrice = productPrice.getPrice();
@@ -72,22 +72,20 @@ public class OrderServiceImpl implements OrderService {
             .unitPrice(unitPrice)
             .build();
 
-
-        // TODO: FeignClient 통신 테스트
         // 사용자 이름, 주소
         MemberDeliveryInfo memberDeliveryInfo = memberServiceClient.getMemberAddress(memberId);
-//        MemberResponse memberResponse = new MemberResponse("NaYeon Kwon",
-//            "서울특별시 강남구 가로수길 43");
 
         // 주문 생성
         Order order = Order.builder()
             .memberId(memberId)
             .deliveryMemberAddress(memberDeliveryInfo.getAddress())
+            .deliveryMemberName(memberDeliveryInfo.getName())
             .totalPrice(unitPrice*qty)
             .orderDate(LocalDateTime.now())
-            .orderProducts(List.of(orderProduct))
             .orderStatus(OrderStatus.ORDER_SUCCESS)
+            .orderProducts(List.of(orderProduct))
             .build();
+        orderProduct.setOrder(order);
 
         orderRepository.save(order);
 
@@ -121,13 +119,15 @@ public class OrderServiceImpl implements OrderService {
         // 주문 생성
         Order order = Order.builder()
             .deliveryMemberAddress(memberDeliveryInfo.getAddress())
+            .deliveryMemberName(memberDeliveryInfo.getName())
             .totalPrice(totalPrice)
             .orderDate(LocalDateTime.now())
-            .orderProducts(orderProducts)
             .orderStatus(OrderStatus.ORDER_SUCCESS)
             .memberId(memberId)
-            .deliveryMemberName(memberDeliveryInfo.getName())
+            .orderProducts(orderProducts)
             .build();
+
+        orderProducts.forEach((orderProduct -> {orderProduct.setOrder(order);}));
 
         orderRepository.save(order);
 
