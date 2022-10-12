@@ -15,11 +15,12 @@ import shop.kokodo.orderpaymentservice.dto.response.data.OrderResponse.OrderShee
 import shop.kokodo.orderpaymentservice.entity.Cart;
 import shop.kokodo.orderpaymentservice.entity.Order;
 import shop.kokodo.orderpaymentservice.entity.OrderProduct;
+import shop.kokodo.orderpaymentservice.entity.enums.EnumMapper;
 import shop.kokodo.orderpaymentservice.entity.enums.order.OrderStatus;
 import shop.kokodo.orderpaymentservice.feign.client.MemberServiceClient;
 import shop.kokodo.orderpaymentservice.feign.client.ProductServiceClient;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse;
-import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.MemberAddress;
+import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.MemberDeliveryInfo;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.MemberOfOrderSheet;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.ProductOfOrderSheet;
 import shop.kokodo.orderpaymentservice.messagequeue.KafkaProducer;
@@ -30,8 +31,6 @@ import shop.kokodo.orderpaymentservice.service.interfaces.OrderService;
 @Slf4j
 @Service
 public class OrderServiceImpl implements OrderService {
-
-    private final ModelMapper modelMapper;
 
     private final OrderRepository orderRepository;
     private final CartRepository cartRepository;
@@ -44,14 +43,12 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     public OrderServiceImpl(
-        ModelMapper modelMapper,
         OrderRepository orderRepository,
         CartRepository cartRepository,
         ProductServiceClient productServiceClient,
         MemberServiceClient memberServiceClient,
         KafkaProducer kafkaProducer) {
 
-        this.modelMapper = modelMapper;
         this.orderRepository = orderRepository;
         this.cartRepository = cartRepository;
         this.productServiceClient = productServiceClient;
@@ -78,14 +75,14 @@ public class OrderServiceImpl implements OrderService {
 
         // TODO: FeignClient 통신 테스트
         // 사용자 이름, 주소
-        MemberAddress memberAddress = memberServiceClient.getMemberAddress(memberId);
+        MemberDeliveryInfo memberDeliveryInfo = memberServiceClient.getMemberAddress(memberId);
 //        MemberResponse memberResponse = new MemberResponse("NaYeon Kwon",
 //            "서울특별시 강남구 가로수길 43");
 
         // 주문 생성
         Order order = Order.builder()
             .memberId(memberId)
-            .deliveryMemberAddress(memberAddress.getAddress())
+            .deliveryMemberAddress(memberDeliveryInfo.getAddress())
             .totalPrice(unitPrice*qty)
             .orderDate(LocalDateTime.now())
             .orderProducts(List.of(orderProduct))
@@ -119,17 +116,17 @@ public class OrderServiceImpl implements OrderService {
             .sum();
 
         // 사용자 이름, 주소
-        MemberAddress memberAddress = memberServiceClient.getMemberAddress(memberId);
-//        FeignResponse.MemberDeliveryInfo memberDeliveryInfo
-//            = new FeignResponse.MemberDeliveryInfo("NaYeon Kwon", "서울특별시 강남구 가로수길 43");
+        MemberDeliveryInfo memberDeliveryInfo = memberServiceClient.getMemberAddress(memberId);
 
         // 주문 생성
         Order order = Order.builder()
-            .deliveryMemberAddress(memberAddress.getAddress())
+            .deliveryMemberAddress(memberDeliveryInfo.getAddress())
             .totalPrice(totalPrice)
             .orderDate(LocalDateTime.now())
             .orderProducts(orderProducts)
             .orderStatus(OrderStatus.ORDER_SUCCESS)
+            .memberId(memberId)
+            .deliveryMemberName(memberDeliveryInfo.getName())
             .build();
 
         orderRepository.save(order);

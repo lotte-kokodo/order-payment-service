@@ -18,9 +18,10 @@ public class FeignResponse {
     @Getter @Setter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class MemberAddress {
+    public static class MemberDeliveryInfo {
 
         private String address;
+        private String name;
 
     }
 

@@ -24,7 +24,7 @@ import shop.kokodo.orderpaymentservice.entity.Order;
 import shop.kokodo.orderpaymentservice.entity.OrderProduct;
 import shop.kokodo.orderpaymentservice.entity.enums.order.OrderStatus;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse;
-import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.MemberAddress;
+import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.MemberDeliveryInfo;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.ProductPrice;
 import shop.kokodo.orderpaymentservice.messagequeue.KafkaProducer;
 import shop.kokodo.orderpaymentservice.repository.interfaces.CartRepository;
@@ -74,6 +74,7 @@ class OrderServiceImplTest {
             Integer price = 5000;
 
             String address = "서울특별시 서초구 서초동 1327-33";
+            String name = "Nayeon Kwon";
 
 
             // Feign Product
@@ -82,9 +83,9 @@ class OrderServiceImplTest {
                 .thenReturn(productPrice);
 
             // Feign Member
-            MemberAddress memberAddress = new MemberAddress(address);
+            MemberDeliveryInfo memberDeliveryInfo = new MemberDeliveryInfo(address, name);
             when(memberServiceClient.getMemberAddress(memberId))
-                .thenReturn(memberAddress);
+                .thenReturn(memberDeliveryInfo);
 
             OrderProduct orderProduct = OrderProduct.builder()
                 .memberId(memberId)
@@ -94,7 +95,7 @@ class OrderServiceImplTest {
                 .build();
 
             Order order = Order.builder()
-                .deliveryMemberAddress(memberAddress.getAddress())
+                .deliveryMemberAddress(memberDeliveryInfo.getAddress())
                 .totalPrice(price*qty)
                 .orderDate(LocalDateTime.now())
                 .orderProducts(List.of(orderProduct))
@@ -143,11 +144,12 @@ class OrderServiceImplTest {
             }
 
             String address = "서울특별시 서초구 서초동 1327-33";
-            MemberAddress memberAddress
-                = new MemberAddress(address);
+            String name = "NaYeon Kwon";
+            MemberDeliveryInfo memberDeliveryInfo
+                = new MemberDeliveryInfo(address, name);
 
             when(cartRepository.findByIdIn(cartIds)).thenReturn(carts);
-            when(memberServiceClient.getMemberAddress(memberId)).thenReturn(memberAddress);
+            when(memberServiceClient.getMemberAddress(memberId)).thenReturn(memberDeliveryInfo);
 
 
             // when
