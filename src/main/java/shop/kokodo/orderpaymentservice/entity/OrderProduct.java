@@ -49,4 +49,7 @@ public class OrderProduct extends Base {
             .build();
     }
 
+    public void setOrder(Order order) {
+        this.order = order;
+    }
 }

@@ -4,6 +4,7 @@ import java.util.List;
 import javax.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 public class OrderRequest {
@@ -22,4 +23,11 @@ public class OrderRequest {
 
     }
 
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter @Setter
+    public static class GetOrderSheet {
+        private Long productId;
+        private Integer qty;
+    }
 }

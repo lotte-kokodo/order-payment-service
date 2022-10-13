@@ -1,4 +1,19 @@
+server:
+  port: 0 # Eureka 로부터 자동 포트 부여
+
+eureka:
+  instance:
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:9001/eureka
+
 spring:
+
+  application:
+    name: order-payment-service
 
   datasource:
     url: jdbc:mysql://localhost:3306/kokodo
@@ -7,9 +22,10 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create
-#    defer-datasource-initialization: true
+      ddl-auto: update
+    generate-ddl: true
+    defer-datasource-initialization: true
 
-#  sql:
-#    init:
-#      mode: always
+  sql:
+    init:
+      mode: always
