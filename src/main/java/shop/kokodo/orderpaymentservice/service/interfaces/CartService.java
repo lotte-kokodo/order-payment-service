@@ -15,8 +15,8 @@ public interface CartService {
     Cart createCart(Long memberId, Long productId, Integer qty);
 
     /* 장바구니 상품 조회 */
-    List<GetCart> getCarts(Long memberId);
+    List<GetCart> getCartProducts(Long memberId);
 
     /* 장바구니 상품 수량 업데이트 API */
-    ResultMessage updateQty(Long cartId, Integer updatedQty);
+    CartResponse.UpdateCartQty updateQty(Long cartId, Integer updatedQty);
 }

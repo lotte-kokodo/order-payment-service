@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,7 +15,7 @@ import shop.kokodo.orderpaymentservice.dto.response.Response;
 import shop.kokodo.orderpaymentservice.dto.response.data.OrderResponse;
 import shop.kokodo.orderpaymentservice.dto.response.data.ResultMessage;
 import shop.kokodo.orderpaymentservice.entity.Order;
-import shop.kokodo.orderpaymentservice.message.ResponseMessage;
+import shop.kokodo.orderpaymentservice.message.MessageFormat;
 import shop.kokodo.orderpaymentservice.service.interfaces.OrderService;
 
 @Slf4j
@@ -40,7 +39,7 @@ public class OrderController {
 
         Order order = orderService.orderSingleProduct(memberId, productId, qty, couponId);
 
-        return Response.success(new ResultMessage(order.getId(), ResponseMessage.CREATE_ORDER_SUCCESS));
+        return Response.success(new ResultMessage(order.getId(), MessageFormat.CREATE_ORDER_SUCCESS));
 
     }
 
@@ -55,7 +54,7 @@ public class OrderController {
 
         Order order = orderService.orderCartProducts(memberId, cartIds, couponIds);
 
-        return Response.success(new ResultMessage(order.getId(), ResponseMessage.CREATE_ORDER_SUCCESS));
+        return Response.success(new ResultMessage(order.getId(), MessageFormat.CREATE_ORDER_SUCCESS));
     }
 
     /* 주문서 조회 API */

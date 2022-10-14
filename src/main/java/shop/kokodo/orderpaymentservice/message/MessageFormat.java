@@ -1,6 +1,6 @@
 package shop.kokodo.orderpaymentservice.message;
 
-public class ResponseMessage {
+public class MessageFormat {
 
     public static final String CREATE_ORDER_SUCCESS = "주문을 완료했습니다.";
     public static final String CREATE_ORDER_FAILURE = "주문 실패";

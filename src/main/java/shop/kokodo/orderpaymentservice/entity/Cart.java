@@ -30,4 +30,12 @@ public class Cart extends Base {
     public void changeQty(Integer updatedQty) {
         qty = updatedQty;
     }
+
+    public void increaseQty() {
+        qty++;
+    }
+
+    public void decreaseQty() {
+        qty--;
+    }
 }

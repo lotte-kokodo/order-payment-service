@@ -32,6 +32,7 @@ public class FeignResponse {
         private Long id;
         private String thumbnail;
         private String name;
+        private Long sellerId;
     }
 
     @Getter @Setter
@@ -65,7 +66,7 @@ public class FeignResponse {
     @Getter @Setter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class CouponRateDiscount {
+    public static class RateDiscountPolicy {
         private Long id;
         private Long rate; // 할인비율
         private Long productId;
@@ -74,7 +75,7 @@ public class FeignResponse {
     @Getter @Setter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class CouponFixDiscount {
+    public static class FixDiscountPolicy {
         private Long id;
         private Long price; // 할인가격
         private Long productId;

@@ -6,8 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import shop.kokodo.orderpaymentservice.entity.Cart;
-import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.CouponFixDiscount;
-import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.CouponRateDiscount;
+import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.FixDiscountPolicy;
+import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.RateDiscountPolicy;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.ProductOfCart;
 
 public class CartResponse {
@@ -24,12 +24,9 @@ public class CartResponse {
         private Integer qty;
         private Integer unitPrice;
         private Integer totalPrice; // 총 가격 (할인 적용 전)
+        private Long sellerId;
 
-//        private Long discountRate; // 비율할인정책-할인비율
-//        private Long discountPrice; // 고정할인정책-할인가격
-
-        public static GetCart createGetCartResponse (Cart cart, ProductOfCart product/*,
-            CouponRateDiscount rateDiscount, CouponFixDiscount fixDiscount*/) {
+        public static GetCart createGetCartResponse (Cart cart, ProductOfCart product) {
             return GetCart.builder()
                 .id(cart.getId())
                 .productId(product.getId())
@@ -38,8 +35,7 @@ public class CartResponse {
                 .qty(cart.getQty())
                 .unitPrice(cart.getUnitPrice())
                 .totalPrice(cart.getUnitPrice() * cart.getQty())
-//                .discountRate(rateDiscount.getRate())
-//                .discountPrice(fixDiscount.getPrice())
+                .sellerId(product.getSellerId())
                 .build();
         }
 
