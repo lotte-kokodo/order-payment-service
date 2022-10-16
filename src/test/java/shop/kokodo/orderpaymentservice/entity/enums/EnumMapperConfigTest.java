@@ -9,9 +9,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import shop.kokodo.orderpaymentservice.entity.enums.order.OrderStatus;
-import shop.kokodo.orderpaymentservice.entity.enums.payment.PaymentMethod;
-import shop.kokodo.orderpaymentservice.entity.enums.payment.PaymentStatus;
+import shop.kokodo.orderpaymentservice.entity.enums.status.OrderStatus;
+import shop.kokodo.orderpaymentservice.entity.enums.status.PaymentMethod;
+import shop.kokodo.orderpaymentservice.entity.enums.status.PaymentStatus;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("[EnumMapperConfig]")

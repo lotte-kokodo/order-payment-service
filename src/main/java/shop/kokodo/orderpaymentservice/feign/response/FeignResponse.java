@@ -28,22 +28,14 @@ public class FeignResponse {
     @Getter @Setter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class ProductOfCart {
+    public static class ProductOfOrder {
         private Long id;
         private String thumbnail;
         private String name;
         private Long sellerId;
-    }
-
-    @Getter @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class ProductOfOrderSheet {
-        private Long id;
-        private String thumbnail;
-        private String name;
         private Integer price;
     }
+
 
     @Getter @Setter
     @NoArgsConstructor
@@ -68,7 +60,7 @@ public class FeignResponse {
     @AllArgsConstructor
     public static class RateDiscountPolicy {
         private Long id;
-        private Long rate; // 할인비율
+        private Integer rate; // 할인비율
         private Long productId;
     }
 

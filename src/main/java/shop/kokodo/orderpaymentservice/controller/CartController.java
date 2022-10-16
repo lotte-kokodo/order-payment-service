@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import shop.kokodo.orderpaymentservice.dto.request.CartRequest;
 import shop.kokodo.orderpaymentservice.dto.response.Response;
 import shop.kokodo.orderpaymentservice.dto.response.data.CartResponse;
+import shop.kokodo.orderpaymentservice.dto.response.data.CartResponse.GetCart;
 import shop.kokodo.orderpaymentservice.dto.response.data.ResultMessage;
 import shop.kokodo.orderpaymentservice.entity.Cart;
 import shop.kokodo.orderpaymentservice.message.MessageFormat;
@@ -45,7 +46,7 @@ public class CartController {
     @GetMapping("/{memberId}")
     public Response getCarts(@PathVariable Long memberId) {
 
-        List<CartResponse.GetCart> carts = cartService.getCartProducts(memberId);
+        List<GetCart> carts = cartService.getCartProducts(memberId);
 
         return Response.success(carts);
     }

@@ -22,7 +22,7 @@ import org.modelmapper.ModelMapper;
 import shop.kokodo.orderpaymentservice.entity.Cart;
 import shop.kokodo.orderpaymentservice.entity.Order;
 import shop.kokodo.orderpaymentservice.entity.OrderProduct;
-import shop.kokodo.orderpaymentservice.entity.enums.order.OrderStatus;
+import shop.kokodo.orderpaymentservice.entity.enums.status.OrderStatus;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.MemberDeliveryInfo;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.ProductPrice;

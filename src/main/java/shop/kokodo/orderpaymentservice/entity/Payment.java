@@ -10,8 +10,8 @@ import javax.persistence.Id;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import shop.kokodo.orderpaymentservice.entity.enums.payment.PaymentMethod;
-import shop.kokodo.orderpaymentservice.entity.enums.payment.PaymentStatus;
+import shop.kokodo.orderpaymentservice.entity.enums.status.PaymentMethod;
+import shop.kokodo.orderpaymentservice.entity.enums.status.PaymentStatus;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

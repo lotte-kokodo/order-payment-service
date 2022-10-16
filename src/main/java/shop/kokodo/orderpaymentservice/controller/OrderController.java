@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import shop.kokodo.orderpaymentservice.dto.request.OrderRequest;
 import shop.kokodo.orderpaymentservice.dto.response.Response;
-import shop.kokodo.orderpaymentservice.dto.response.data.OrderResponse;
+import shop.kokodo.orderpaymentservice.dto.response.data.OrderResponse.GetOrderProduct;
 import shop.kokodo.orderpaymentservice.dto.response.data.ResultMessage;
 import shop.kokodo.orderpaymentservice.entity.Order;
 import shop.kokodo.orderpaymentservice.message.MessageFormat;
@@ -44,7 +44,6 @@ public class OrderController {
     }
 
     /* 장바구니 주문 API */
-    // TODO 사용자 정보 어디서 넘어오는지 확인
     @PostMapping("/{memberId}/cart")
     public Response orderCartProduct(@PathVariable("memberId") Long memberId,
                                     @RequestBody OrderRequest.CreateCartOrder req) {
@@ -60,7 +59,7 @@ public class OrderController {
     /* 주문서 조회 API */
     @GetMapping("/{memberId}/orderSheet")
     public Response getOrderSheet(@PathVariable Long memberId, @RequestParam List<Long> productIds) {
-        OrderResponse.OrderSheet orderSheet = orderService.getOrderSheet(memberId, productIds);
-        return Response.success(orderSheet);
+        List<GetOrderProduct> orderProducts = orderService.getOrderSheetProducts(memberId, productIds);
+        return Response.success(orderProducts);
     }
 }

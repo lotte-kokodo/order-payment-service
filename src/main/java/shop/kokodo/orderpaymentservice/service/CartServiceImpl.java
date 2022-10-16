@@ -10,14 +10,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import shop.kokodo.orderpaymentservice.dto.response.data.CartResponse;
+import shop.kokodo.orderpaymentservice.dto.response.data.CartResponse.GetCart;
 import shop.kokodo.orderpaymentservice.dto.response.data.CartResponse.UpdateCartQty;
 import shop.kokodo.orderpaymentservice.entity.Cart;
+import shop.kokodo.orderpaymentservice.entity.enums.status.CartStatus;
 import shop.kokodo.orderpaymentservice.exception.api.ApiRequestException;
 import shop.kokodo.orderpaymentservice.feign.client.ProductServiceClient;
 import shop.kokodo.orderpaymentservice.feign.client.PromotionServiceClient;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse;
-import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.ProductOfCart;
+import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.ProductOfOrder;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.ProductStock;
+import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.RateDiscountPolicy;
 import shop.kokodo.orderpaymentservice.message.ExceptionMessage;
 import shop.kokodo.orderpaymentservice.repository.interfaces.CartRepository;
 import shop.kokodo.orderpaymentservice.service.interfaces.CartService;
@@ -53,6 +56,7 @@ public class CartServiceImpl implements CartService {
             .productId(productId)
             .qty(qty)
             .unitPrice(unitPrice)
+            .cartStatus(CartStatus.IN_CART)
             .build();
 
         cartRepository.save(cart);
@@ -63,7 +67,7 @@ public class CartServiceImpl implements CartService {
     @Override
     public List<CartResponse.GetCart> getCartProducts(Long memberId) {
         /* 장바구니 조회 */
-        List<Cart> carts = cartRepository.findAllByMemberId(memberId);
+        List<Cart> carts = cartRepository.findAllByMemberIdAndCartStatus(memberId, CartStatus.IN_CART);
 
         // productId List 생성
         List<Long> productIds = carts.stream().map(Cart::getProductId).collect(Collectors.toList());
@@ -73,12 +77,15 @@ public class CartServiceImpl implements CartService {
             .collect(Collectors.toMap(Cart::getProductId, Function.identity()));
 
         // 상품 조회
-        Map<Long, ProductOfCart> cartProductMap = productServiceClient.getCartProducts(productIds);
+        Map<Long, ProductOfOrder> cartProductMap = productServiceClient.getOrderProducts(productIds);
+        // 비율 할인 정책 조회
+        Map<Long, RateDiscountPolicy> discountProductMap = promotionServiceClient.getRateDiscountPolicy(productIds);
 
         return productIds.stream()
                         .map(productId ->
-                                CartResponse.GetCart.createGetCartResponse(productCartIdMap.get(productId),
-                                                                            cartProductMap.get(productId)))
+                                GetCart.createGetCartResponse(productCartIdMap.get(productId),
+                                                                            cartProductMap.get(productId),
+                                                                            discountProductMap.get(productId)))
                         .collect(Collectors.toList());
     }
 

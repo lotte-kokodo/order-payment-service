@@ -2,9 +2,9 @@ package shop.kokodo.orderpaymentservice.entity.enums;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import shop.kokodo.orderpaymentservice.entity.enums.order.OrderStatus;
-import shop.kokodo.orderpaymentservice.entity.enums.payment.PaymentMethod;
-import shop.kokodo.orderpaymentservice.entity.enums.payment.PaymentStatus;
+import shop.kokodo.orderpaymentservice.entity.enums.status.OrderStatus;
+import shop.kokodo.orderpaymentservice.entity.enums.status.PaymentMethod;
+import shop.kokodo.orderpaymentservice.entity.enums.status.PaymentStatus;
 
 @Configuration
 public class EnumMapperConfig {
