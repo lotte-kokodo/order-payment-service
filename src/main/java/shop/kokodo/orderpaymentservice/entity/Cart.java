@@ -25,4 +25,9 @@ public class Cart extends Base {
     private Long memberId;
     private Long productId;
     private Integer qty;
+    private Integer unitPrice;
+
+    public void changeQty(Integer updatedQty) {
+        qty = updatedQty;
+    }
 }

@@ -2,10 +2,10 @@ package shop.kokodo.orderpaymentservice.service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -13,11 +13,20 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import shop.kokodo.orderpaymentservice.dto.response.dto.MemberResponse;
-import shop.kokodo.orderpaymentservice.dto.response.dto.OrderDetailInformationDto;
-import shop.kokodo.orderpaymentservice.dto.response.dto.OrderInformationDto;
-import shop.kokodo.orderpaymentservice.dto.response.dto.OrderResponse;
-import shop.kokodo.orderpaymentservice.entity.*;
+import org.springframework.web.bind.annotation.RequestParam;
+import shop.kokodo.orderpaymentservice.dto.response.data.OrderResponse.OrderSheet;
+import shop.kokodo.orderpaymentservice.entity.Cart;
+import shop.kokodo.orderpaymentservice.entity.Order;
+import shop.kokodo.orderpaymentservice.entity.OrderProduct;
+import shop.kokodo.orderpaymentservice.entity.enums.EnumMapper;
+import shop.kokodo.orderpaymentservice.entity.enums.order.OrderStatus;
+import shop.kokodo.orderpaymentservice.feign.client.MemberServiceClient;
+import shop.kokodo.orderpaymentservice.feign.client.ProductServiceClient;
+import shop.kokodo.orderpaymentservice.feign.response.FeignResponse;
+import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.MemberDeliveryInfo;
+import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.MemberOfOrderSheet;
+import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.ProductOfOrderSheet;
+import shop.kokodo.orderpaymentservice.messagequeue.KafkaProducer;
 import shop.kokodo.orderpaymentservice.repository.interfaces.CartRepository;
 import shop.kokodo.orderpaymentservice.repository.interfaces.OrderProductRepository;
 import shop.kokodo.orderpaymentservice.repository.interfaces.OrderRepository;
@@ -28,8 +37,6 @@ import shop.kokodo.orderpaymentservice.service.interfaces.OrderService;
 @Service
 public class OrderServiceImpl implements OrderService {
 
-    private final ModelMapper modelMapper;
-
     private final OrderRepository orderRepository;
     private final CartRepository cartRepository;
     /* feignclient 전 productRepository사용을 위한 repository */
@@ -37,32 +44,40 @@ public class OrderServiceImpl implements OrderService {
     private final OrderProductRepository orderProductRepository;
 
     // FeignClient
-//    private final MemberServiceClient memberServiceClient;
-//    private final ProductServiceClient productServiceClient;
+    private final ProductServiceClient productServiceClient;
+    private final MemberServiceClient memberServiceClient;
+
+    private final KafkaProducer kafkaProducer;
 
     @Autowired
     public OrderServiceImpl(
+        OrderRepository orderRepository,
+        CartRepository cartRepository,
+        ProductServiceClient productServiceClient,
+        MemberServiceClient memberServiceClient,
+        KafkaProducer kafkaProducer),
+            OrderProductRepository orderProductRepository) {
             ModelMapper modelMapper,
             OrderRepository orderRepository,
             CartRepository cartRepository,
             ProductRepository productRepository,
-            OrderProductRepository orderProductRepository) {
+        KafkaProducer kafkaProducer) {
 
-        this.modelMapper = modelMapper;
         this.orderRepository = orderRepository;
         this.cartRepository = cartRepository;
         this.productRepository = productRepository;
         this.orderProductRepository = orderProductRepository;
+        this.productServiceClient = productServiceClient;
+        this.memberServiceClient = memberServiceClient;
+        this.kafkaProducer = kafkaProducer;
     }
 
     @Transactional
-    public Long orderSingleProduct(Long memberId, Long productId, Integer qty) {
+    public Order orderSingleProduct(Long memberId, Long productId, Integer qty, Long couponId) {
 
-        // TODO: FeignClient 통신 테스트
         // 상품 가격
-//        ProductResponse productResponse = productServiceClient.getProduct(productId);
-//        Integer unitPrice = productResponse.getUnitPrice();
-        Integer unitPrice = 10000;
+        FeignResponse.ProductPrice productPrice = productServiceClient.getProduct(productId);
+        Integer unitPrice = productPrice.getPrice();
 
         // 주문 상품 생성
         OrderProduct orderProduct = OrderProduct.builder()
@@ -72,215 +87,90 @@ public class OrderServiceImpl implements OrderService {
                 .unitPrice(unitPrice)
                 .build();
 
-
-        // TODO: FeignClient 통신 테스트
         // 사용자 이름, 주소
-//        MemberResponse memberResponse = memberServiceClient.getMember(memberId);
-        MemberResponse memberResponse = new MemberResponse("NaYeon Kwon",
-                "서울특별시 강남구 가로수길 43");
+        MemberDeliveryInfo memberDeliveryInfo = memberServiceClient.getMemberAddress(memberId);
 
         // 주문 생성
         Order order = Order.builder()
-                .deliveryMemberName(memberResponse.getMemberName())
-                .deliveryMemberAddress(memberResponse.getMemberAddress())
-                .totalPrice(unitPrice * qty)
-                .orderDate(LocalDateTime.now())
-                .orderProducts(List.of(orderProduct))
-                .build();
+            .memberId(memberId)
+            .deliveryMemberAddress(memberDeliveryInfo.getAddress())
+            .deliveryMemberName(memberDeliveryInfo.getName())
+            .totalPrice(unitPrice*qty)
+            .orderDate(LocalDateTime.now())
+            .orderStatus(OrderStatus.ORDER_SUCCESS)
+            .orderProducts(List.of(orderProduct))
+            .build();
+        orderProduct.setOrder(order);
 
         orderRepository.save(order);
 
-        return order.getId();
+        kafkaProducer.send("kokodo.product.de-stock", new LinkedHashMap<>(){{ put(productId, qty); }});
+
+        // TODO: 쿠폰 상태 수정 Kafka Listener 토픽 수정
+        kafkaProducer.send("kokodo.coupon.status", List.of(couponId));
+
+        return order;
     }
 
     @Transactional
-    public Long orderCartProducts(Long memberId, List<Long> cartIds) {
+    public Order orderCartProducts(Long memberId, List<Long> cartIds, List<Long> couponIds) {
         // '장바구니상품' 조회
         List<Cart> carts = cartRepository.findByIdIn(cartIds);
 
         // 주문 상품 생성
         List<OrderProduct> orderProducts = carts.stream()
-                .map(cart -> modelMapper.map(cart, OrderProduct.class))
-                .collect(Collectors.toList());
-
-        // 단일상품가격(unitPrice) 세팅
-        List<Long> productIds = carts.stream()
-                .map(Cart::getProductId)
-                .collect(Collectors.toList());
-        ;
-
-//        List<ProductResponse> productResponses = productServiceClient.getProducts(productIds);
-//        modelMapper.map(productResponses, orderProducts);
+            .map(OrderProduct::convertCartToOrderProduct)
+            .collect(Collectors.toList());
 
         // 주문 총 가격 계산
         Integer totalPrice = orderProducts.stream()
-                .map(OrderProduct::getUnitPrice)
-                .filter(Objects::nonNull)
-                .mapToInt(Integer::intValue)
-                .sum();
+            .map(orderProduct -> orderProduct.getUnitPrice() * orderProduct.getQty())
+            .mapToInt(Integer::intValue)
+            .sum();
 
         // 사용자 이름, 주소
-//        MemberResponse memberResponse = memberServiceClient.getMember(memberId);
-        MemberResponse memberResponse = new MemberResponse("NaYeon Kwon",
-                "서울특별시 강남구 가로수길 43");
+        MemberDeliveryInfo memberDeliveryInfo = memberServiceClient.getMemberAddress(memberId);
 
         // 주문 생성
         Order order = Order.builder()
-                .deliveryMemberName(memberResponse.getMemberName())
-                .deliveryMemberAddress(memberResponse.getMemberAddress())
-                .totalPrice(totalPrice)
-                .orderDate(LocalDateTime.now())
-                .orderProducts(orderProducts)
-                .build();
+            .deliveryMemberAddress(memberDeliveryInfo.getAddress())
+            .deliveryMemberName(memberDeliveryInfo.getName())
+            .totalPrice(totalPrice)
+            .orderDate(LocalDateTime.now())
+            .orderStatus(OrderStatus.ORDER_SUCCESS)
+            .memberId(memberId)
+            .orderProducts(orderProducts)
+            .build();
+
+        orderProducts.forEach((orderProduct -> {orderProduct.setOrder(order);}));
 
         orderRepository.save(order);
 
-        return order.getId();
-    }
+        // 상품 재고 감소
+        // productId (key) - qty (value) Map 생성
+        Map<Long,Integer> productIdQtyMap = carts.stream()
+            .collect(Collectors.toMap(Cart::getProductId, Cart::getQty));
 
-    /**
-     * memberId를 받아 OrderInformationDto를 return하는 함수
-     * memberId -> OrderProductList
-     * OrderProductList.id -> ProductList
-     * ProductList.id -> Product
-     * 
-     * @param memberId
-     * @return List<OrderInformationDto>
-     */
-    @Override
-    public List<OrderInformationDto> getOrderList(Long memberId) {
-        //1. memberId로 OrderProduct들 갖고오기
-        //2. OrderProduct들로 productId들 갖고오기
-        List<Object[]> orderAndOrderProductList = orderProductRepository.findAllByMemberId(memberId);
+        kafkaProducer.send("kokodo.product.de-stock", productIdQtyMap);
 
-        log.info("orderAndOrderProductList : " + orderAndOrderProductList.toString());
-        List<OrderProduct> orderProductList = new ArrayList<>();
-        List<Order> orderList = new ArrayList<>();
-        orderAndOrderProductList.stream().forEach(
-                row -> {
-                    orderList.add((Order) row[0]);
-                    orderProductList.add((OrderProduct) row[1]);
-                }
-        );
-        log.info("orderList : " + orderList.toString());
-        log.info("orderProductList : " + orderProductList.toString());
+        // [key] "couponIds"    [value] Long List
+        // map.get("couponIds")
+        kafkaProducer.send("kokodo.coupon.status", couponIds);
 
-
-
-        //4. Product들을 Response와 합쳐서 보내기
-        List<OrderInformationDto> orderInformationDtoList = new ArrayList<>();
-        for(int i=0;i<orderProductList.size();i++) {
-            Order order = orderList.get(i);
-            if(orderInformationDtoList.size() != 0) {
-                if(order.getId() == orderInformationDtoList.get(orderInformationDtoList.size() - 1).getOrderId()) {
-                    continue;
-                }
-            }
-            List<Long> productIdList =
-                    orderProductList.stream()
-                            .filter(orderProduct -> order.getId().equals(orderProduct.getOrder().getId()))
-                            .map(OrderProduct::getProductId)
-                            .collect(Collectors.toList());
-            log.info("productIdList : " + productIdList.toString());
-
-            //3. productId들로 Product들 갖고오기
-            // TODO FeignClient 통신 테스트
-//            ProductServiceClient productServiceClient;
-//            List<Product> productList = productServiceClient.getProducts(productIdList);
-
-            List<Product> productList = productRepository.findAllByIdIn(productIdList);
-            log.info("productList : " + productList.toString());
-            //주문번호
-            Long orderId = order.getId();
-            String name = "";
-            String thumbnail = "";
-            if(productList.size() != 0) {
-                //제목
-                String orderName = productList.get(0).getDisplayName();
-                //썸네일
-                thumbnail = productList.get(0).getThumbnail();
-                if(productIdList.size() != 1) {
-                    name = orderName + " 외 " + (productIdList.size() - 1) + "건";
-                }else {
-                    name = orderName;
-                }
-            }
-            //주문시간
-            LocalDateTime orderDate = order.getOrderDate();
-
-            //결제금액
-            int price = order.getTotalPrice();
-            //주문상태
-            OrderStatus orderStatus = order.getOrderStatus();
-
-            //product에서 가져오는 부분
-            //제목
-            String name = "";
-            //썸네일
-            String thumbnail = "";
-            for (Product product : productList) {
-                log.info("프로덕트 vs 오더프로덕트 아이디 :: " + product.toString() + " *** " + orderProduct.toString());
-                if (product.getId() == orderProduct.getProductId()) {
-                    name = product.getDisplayName();
-                    if(orderIdMap.get(product.getId()) != 1) {
-                        name = name + "외 " + (orderIdMap.get(product.getId()) - 1) + "건";
-                    }
-                    thumbnail = product.getThumbnail();
-                    break;
-                }
-            }
-
-            OrderInformationDto orderInformationDto = OrderInformationDto.builder()
-                    .orderId(orderId)
-                    .orderProductId(orderProductId)
-                    .name(name)
-                    .orderStatus(orderStatus)
-                    .price(price)
-                    .thumbnail(thumbnail)
-                    .orderDate(orderDateTime)
-                    .build();
-            orderInformationDtoList.add(orderInformationDto);
-        }
-
-        return orderInformationDtoList;
+        return order;
     }
 
     @Override
-    public List<OrderDetailInformationDto> getOrderDetailList(Long memberId, Long orderId) {
-        List<OrderProduct> orderProductList = orderProductRepository.findAllByIdAndMemberId(memberId, orderId);
-        log.info("orderProductList : " + orderProductList.toString());
+    public OrderSheet getOrderSheet(Long memberId, @RequestParam List<Long> productIds) {
+        // 주문서 상품 정보 요청
+        List<ProductOfOrderSheet> products = productServiceClient.getOrderSheetProducts(productIds);
 
-        List<Long> productIdList = orderProductList.stream()
-                .map(OrderProduct::getProductId)
-                .collect(Collectors.toList());
-        log.info("productIdList : " + productIdList.toString());
+        // 사용자 정보 요청
+        MemberOfOrderSheet member = memberServiceClient.getMemberOrderInfo(memberId);
 
-        // TODO FeignClient 통신 테스트
-//      ProductServiceClient productServiceClient;
-//      List<Product> productList = productServiceClient.getProducts(productIdList);
-
-        List<Product> productList = productRepository.findAllByIdIn(productIdList);
-        log.info("productList : " + productList.toString());
-
-        List<OrderDetailInformationDto> orderDetailInformationDtoList = new ArrayList<>();
-
-
-        for(int i=0;i<orderProductList.size();i++) {
-            OrderDetailInformationDto orderDetailInformationDto = OrderDetailInformationDto.builder()
-                    .id(orderProductList.get(i).getId())
-                    .name(productList.get(i).getDisplayName())
-                    .orderStatus(orderProductList.get(i).getOrder().getOrderStatus())
-                    .price(orderProductList.get(i).getUnitPrice())
-                    .qty(orderProductList.get(i).getQty())
-                    .thumbnail(productList.get(i).getThumbnail())
-                    .build();
-            orderDetailInformationDtoList.add(orderDetailInformationDto);
-        }
-        for(int i=0;i<orderDetailInformationDtoList.size();i++ ){
-            log.info("orderDetailInformationDtoList : " + orderDetailInformationDtoList.get(i).getName());
-        }
-
-
-        return orderDetailInformationDtoList;
+        return OrderSheet.builder()
+            .productInfos(products)
+            .memberInfo(member)
+            .build();
     }
 }
