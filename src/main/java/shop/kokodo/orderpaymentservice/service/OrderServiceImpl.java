@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,10 +94,9 @@ public class OrderServiceImpl implements OrderService {
             .orderProducts(List.of(orderProduct))
             .build();
         orderProduct.setOrder(order);
-
         orderRepository.save(order);
 
-//        kafkaProducer.send("kokodo.product.de-stock", new LinkedHashMap<>(){{ put(productId, qty); }});
+        kafkaProducer.send("kokodo.product.de-stock", new LinkedHashMap<>(){{ put(productId, qty); }});
 
         // TODO: 쿠폰 상태 수정 Kafka Listener 토픽 수정
 //        kafkaProducer.send("kokodo.coupon.status", List.of(couponId));
@@ -153,9 +153,9 @@ public class OrderServiceImpl implements OrderService {
         cartRepository.saveAll(carts);
 
         // 상품 재고 감소
-//        Map<Long,Integer> productIdQtyMap = carts.stream()
-//            .collect(Collectors.toMap(Cart::getProductId, Cart::getQty));
-//        kafkaProducer.send("kokodo.product.de-stock", productIdQtyMap);
+        Map<Long,Integer> productIdQtyMap = carts.stream()
+            .collect(Collectors.toMap(Cart::getProductId, Cart::getQty));
+        kafkaProducer.send("kokodo.product.de-stock", productIdQtyMap);
 
         // TODO: 주문 시 사용한 쿠폰 리스트 처리
         // [key] "couponIds"    [value] Long List
@@ -166,7 +166,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<GetOrderProduct> getOrderSheetProducts(Long memberId, @RequestParam List<Long> productIds) {
+    public Map<Long, GetOrderProduct> getOrderSheetProducts(Long memberId, @RequestParam List<Long> productIds) {
         // 주문서 상품 정보 요청
         Map<Long, ProductOfOrder> products = productServiceClient.getOrderProducts(productIds);
 
@@ -174,12 +174,14 @@ public class OrderServiceImpl implements OrderService {
         // 비율 할인 정책 조회
         Map<Long, RateDiscountPolicy> discountProductMap = promotionServiceClient.getRateDiscountPolicy(productIds);
 
-        return productIds.stream()
-            .map(productId ->
-                GetOrderProduct.createGetOrderProduct(products.get(productId),
-                                                discountProductMap.get(productId)))
+
+        List<GetOrderProduct> orderProducts = productIds.stream()
+            .map(productId -> GetOrderProduct.createGetOrderProduct(products.get(productId),
+                                                                    discountProductMap.get(productId)))
             .collect(Collectors.toList());
 
+        return orderProducts.stream().collect(Collectors.toMap(GetOrderProduct::getProductId,
+            Function.identity()));
     }
 
     private boolean isExistRateDiscountPolicy(RateDiscountPolicy rateDiscountPolicy) {

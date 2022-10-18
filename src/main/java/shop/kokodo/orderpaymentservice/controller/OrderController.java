@@ -1,6 +1,7 @@
 package shop.kokodo.orderpaymentservice.controller;
 
 import java.util.List;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -59,7 +60,7 @@ public class OrderController {
     /* 주문서 조회 API */
     @GetMapping("/{memberId}/orderSheet")
     public Response getOrderSheet(@PathVariable Long memberId, @RequestParam List<Long> productIds) {
-        List<GetOrderProduct> orderProducts = orderService.getOrderSheetProducts(memberId, productIds);
+        Map<Long, GetOrderProduct> orderProducts = orderService.getOrderSheetProducts(memberId, productIds);
         return Response.success(orderProducts);
     }
 }
