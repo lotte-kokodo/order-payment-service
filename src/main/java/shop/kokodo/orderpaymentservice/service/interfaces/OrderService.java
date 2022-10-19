@@ -1,19 +1,12 @@
 package shop.kokodo.orderpaymentservice.service.interfaces;
 
-
+import shop.kokodo.orderpaymentservice.dto.response.data.OrderResponse.GetOrderProduct;
 import shop.kokodo.orderpaymentservice.dto.response.dto.OrderDetailInformationDto;
 import shop.kokodo.orderpaymentservice.dto.response.dto.OrderInformationDto;
-import shop.kokodo.orderpaymentservice.dto.response.dto.OrderResponse;
 import shop.kokodo.orderpaymentservice.entity.Order;
-import shop.kokodo.orderpaymentservice.entity.OrderProduct;
 
 import java.util.List;
-import org.springframework.web.bind.annotation.PathVariable;
-import shop.kokodo.orderpaymentservice.dto.request.OrderRequest;
-import shop.kokodo.orderpaymentservice.dto.request.OrderRequest.GetOrderSheet;
-//import shop.kokodo.orderpaymentservice.dto.response.data.OrderResponse;
-import shop.kokodo.orderpaymentservice.dto.response.data.OrderResponse.OrderSheet;
-import shop.kokodo.orderpaymentservice.entity.Order;
+import java.util.Map;
 
 public interface OrderService {
 
@@ -24,10 +17,12 @@ public interface OrderService {
     Order orderCartProducts(Long memberId, List<Long> cartIds, List<Long> couponIds);
 
     /* 주문서 조회 */
-    OrderSheet getOrderSheet(Long memberId, List<Long> productIds);
+    Map<Long, GetOrderProduct> getOrderSheetProducts(Long memberId, List<Long> productIds);
+
     /* 주문 조회 */
     List<OrderInformationDto> getOrderList(Long memberId);
 
     /* 주문 상세 조회 */
     List<OrderDetailInformationDto> getOrderDetailList(Long memberId, Long orderId);
+
 }

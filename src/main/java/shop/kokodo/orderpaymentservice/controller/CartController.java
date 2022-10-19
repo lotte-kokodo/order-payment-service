@@ -13,9 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 import shop.kokodo.orderpaymentservice.dto.request.CartRequest;
 import shop.kokodo.orderpaymentservice.dto.response.Response;
 import shop.kokodo.orderpaymentservice.dto.response.data.CartResponse;
+import shop.kokodo.orderpaymentservice.dto.response.data.CartResponse.GetCart;
 import shop.kokodo.orderpaymentservice.dto.response.data.ResultMessage;
 import shop.kokodo.orderpaymentservice.entity.Cart;
-import shop.kokodo.orderpaymentservice.message.ResponseMessage;
+import shop.kokodo.orderpaymentservice.message.MessageFormat;
 import shop.kokodo.orderpaymentservice.service.interfaces.CartService;
 
 @RestController
@@ -38,14 +39,14 @@ public class CartController {
 
         Cart cart = cartService.createCart(memberId, productId, qty);
 
-        return Response.success(new ResultMessage(cart.getId(), ResponseMessage.CREATE_CART_SUCCESS));
+        return Response.success(new ResultMessage(cart.getId(), MessageFormat.CREATE_CART_SUCCESS));
     }
 
     /* 장바구니 목록 조회 API */
     @GetMapping("/{memberId}")
     public Response getCarts(@PathVariable Long memberId) {
 
-        List<CartResponse.GetCart> carts = cartService.getCarts(memberId);
+        List<GetCart> carts = cartService.getCartProducts(memberId);
 
         return Response.success(carts);
     }
@@ -53,8 +54,8 @@ public class CartController {
     /* 장바구니 상품 수량 업데이트 API */
     @PatchMapping("/{cartId}/qty")
     public Response updateQty(@PathVariable Long cartId, @RequestBody CartRequest.UpdateQty req) {
-        ResultMessage message = cartService.updateQty(cartId, req.getQty());
+        CartResponse.UpdateCartQty updateCartQty = cartService.updateQty(cartId, req.getQty());
 
-        return Response.success(message);
+        return Response.success(updateCartQty);
     }
 }

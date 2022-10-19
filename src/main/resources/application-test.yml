@@ -23,10 +23,19 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
-    generate-ddl: true
+      ddl-auto: create
     defer-datasource-initialization: true
+
+    properties:
+      hibernate:
+        show-sql: true
+        format_sql: true
 
   sql:
     init:
       mode: always
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.type: trace
