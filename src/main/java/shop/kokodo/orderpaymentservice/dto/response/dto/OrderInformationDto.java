@@ -1,7 +1,7 @@
 package shop.kokodo.orderpaymentservice.dto.response.dto;
 
 import lombok.*;
-import shop.kokodo.orderpaymentservice.entity.OrderStatus;
+import shop.kokodo.orderpaymentservice.entity.enums.order.OrderStatus;
 
 import java.time.LocalDateTime;
 
