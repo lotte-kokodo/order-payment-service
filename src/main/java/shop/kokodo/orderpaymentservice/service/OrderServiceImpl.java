@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestParam;
 import shop.kokodo.orderpaymentservice.dto.response.data.OrderResponse.GetOrderProduct;
+import shop.kokodo.orderpaymentservice.dto.response.dto.OrderDetailInformationDto;
+import shop.kokodo.orderpaymentservice.dto.response.dto.OrderInformationDto;
 import shop.kokodo.orderpaymentservice.entity.Cart;
 import shop.kokodo.orderpaymentservice.entity.Order;
 import shop.kokodo.orderpaymentservice.entity.OrderProduct;
@@ -28,6 +30,7 @@ import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.RateCoupon;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.RateDiscountPolicy;
 import shop.kokodo.orderpaymentservice.messagequeue.KafkaProducer;
 import shop.kokodo.orderpaymentservice.repository.interfaces.CartRepository;
+import shop.kokodo.orderpaymentservice.repository.interfaces.OrderProductRepository;
 import shop.kokodo.orderpaymentservice.repository.interfaces.OrderRepository;
 import shop.kokodo.orderpaymentservice.service.interfaces.OrderService;
 
@@ -37,6 +40,9 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final CartRepository cartRepository;
+    /* feignclient 전 productRepository사용을 위한 repository */
+//    private final ProductRepository productRepository;
+    private final OrderProductRepository orderProductRepository;
 
     // FeignClient
     private final ProductServiceClient productServiceClient;
@@ -51,15 +57,18 @@ public class OrderServiceImpl implements OrderService {
         CartRepository cartRepository,
         ProductServiceClient productServiceClient,
         MemberServiceClient memberServiceClient,
+        OrderProductRepository orderProductRepository,
         PromotionServiceClient promotionServiceClient,
         KafkaProducer kafkaProducer) {
 
         this.orderRepository = orderRepository;
         this.cartRepository = cartRepository;
+        this.orderProductRepository = orderProductRepository;
         this.productServiceClient = productServiceClient;
         this.memberServiceClient = memberServiceClient;
         this.promotionServiceClient = promotionServiceClient;
         this.kafkaProducer = kafkaProducer;
+//        this.productRepository = productRepository;
     }
 
     @Transactional
@@ -117,7 +126,9 @@ public class OrderServiceImpl implements OrderService {
         orderProduct.setOrder(order);
         orderRepository.save(order);
 
-        kafkaProducer.send("kokodo.product.de-stock", new LinkedHashMap<>(){{ put(productId, qty); }});
+        kafkaProducer.send("kokodo.product.de-stock", new LinkedHashMap<>() {{
+            put(productId, qty);
+        }});
 
         // TODO: 쿠폰 상태 수정 Kafka Listener 토픽 수정
 //        kafkaProducer.send("kokodo.coupon.status", List.of(couponId));
@@ -226,11 +237,11 @@ public class OrderServiceImpl implements OrderService {
         // 비율 할인 정책 조회
         Map<Long, RateDiscountPolicy> discountProductMap = promotionServiceClient.getRateDiscountPolicy(productIds);
 
-
         List<GetOrderProduct> orderProducts = productIds.stream()
             .map(productId -> GetOrderProduct.createGetOrderProduct(products.get(productId),
                 discountProductMap.get(productId)))
             .collect(Collectors.toList());
+
 
         return orderProducts.stream().collect(Collectors.toMap(GetOrderProduct::getProductId,
             Function.identity()));
@@ -255,12 +266,119 @@ public class OrderServiceImpl implements OrderService {
         return rateDiscountPolicy != null;
     }
 
+    private boolean isExistFixDiscountPolicy(Boolean discountPolicyBool) {
+        return discountPolicyBool != null ? discountPolicyBool : false;
+    }
+
     private boolean isExistRateCoupon(RateCoupon rateCoupon) {
         return rateCoupon != null;
     }
 
-    private boolean isExistFixDiscountPolicy(Boolean discountPolicyBool) {
-        return discountPolicyBool != null ? discountPolicyBool : false;
+    private Integer getDiscPrice(Integer unitPrice, Integer qty, Integer rate) {
+        return (int) (unitPrice * qty * (1 - rate * 0.01));
+    }
+
+    @Override
+    public List<OrderInformationDto> getOrderList(Long memberId) {
+        //1. memberId로 OrderProduct들 갖고오기
+        //2. OrderProduct들로 productId들 갖고오기
+        List<Object[]> orderAndOrderProductList = orderProductRepository.findAllByMemberId(memberId);
+        List<OrderProduct> orderProductList = new ArrayList<>();
+        List<Order> orderList = new ArrayList<>();
+        orderAndOrderProductList.stream().forEach(
+            row -> {
+                orderList.add((Order) row[0]);
+                orderProductList.add((OrderProduct) row[1]);
+            }
+        );
+        //4. Product들을 Response와 합쳐서 보내기
+        List<OrderInformationDto> orderInformationDtoList = new ArrayList<>();
+        for (int i = 0; i < orderProductList.size(); i++) {
+            Order order = orderList.get(i);
+            if (orderInformationDtoList.size() != 0) {
+                if (order.getId() == orderInformationDtoList.get(orderInformationDtoList.size() - 1).getOrderId()) {
+                    continue;
+                }
+            }
+            List<Long> productIdList =
+                orderProductList.stream()
+                    .filter(orderProduct -> order.getId().equals(orderProduct.getOrder().getId()))
+                    .map(OrderProduct::getProductId)
+                    .distinct()
+                    .collect(Collectors.toList());
+            log.info("결과값");
+            log.info(productIdList.toString());
+            //3. productId들로 Product들 갖고오기
+            List<FeignResponse.Product> productList = productServiceClient.getProductList(productIdList);
+            //주문번호
+            Long orderId = order.getId();
+
+            String name = "";
+            String thumbnail = "";
+            if (productList.size() != 0) {
+                //제목
+                String orderName = productList.get(0).getDisplayName();
+                //썸네일
+                thumbnail = productList.get(0).getThumbnail();
+                if (productIdList.size() != 1) {
+                    name = orderName + " 외 " + (productIdList.size() - 1) + "건";
+                } else {
+                    name = orderName;
+                }
+            }
+            //주문시간
+            LocalDateTime orderDate = order.getOrderDate();
+
+            //결제금액
+            int price = order.getTotalPrice();
+            //주문상태
+            OrderStatus orderStatus = order.getOrderStatus();
+
+            OrderInformationDto orderInformationDto = OrderInformationDto.builder()
+                .orderId(orderId)
+                .name(name)
+                .orderStatus(orderStatus)
+                .price(price)
+                .thumbnail(thumbnail)
+                .orderDate(orderDate)
+                .build();
+            orderInformationDtoList.add(orderInformationDto);
+        }
+
+        return orderInformationDtoList;
+    }
+
+    @Override
+    public List<OrderDetailInformationDto> getOrderDetailList(Long memberId, Long orderId) {
+        List<OrderProduct> orderProductList = orderProductRepository.findAllByIdAndMemberId(memberId, orderId);
+        log.info("orderProductList : " + orderProductList.toString());
+
+        List<Long> productIdList = orderProductList.stream()
+            .map(OrderProduct::getProductId)
+            .collect(Collectors.toList());
+        log.info("productIdList : " + productIdList.toString());
+
+        List<FeignResponse.Product> productList = productServiceClient.getProductList(productIdList);
+
+        List<OrderDetailInformationDto> orderDetailInformationDtoList = new ArrayList<>();
+
+
+        for (int i = 0; i < orderProductList.size(); i++) {
+            OrderDetailInformationDto orderDetailInformationDto = OrderDetailInformationDto.builder()
+                .id(orderProductList.get(i).getId())
+                .name(productList.get(i).getDisplayName())
+                .orderStatus(orderProductList.get(i).getOrder().getOrderStatus())
+                .price(orderProductList.get(i).getUnitPrice())
+                .qty(orderProductList.get(i).getQty())
+                .thumbnail(productList.get(i).getThumbnail())
+                .build();
+            orderDetailInformationDtoList.add(orderDetailInformationDto);
+        }
+        for (int i = 0; i < orderDetailInformationDtoList.size(); i++) {
+            log.info("orderDetailInformationDtoList : " + orderDetailInformationDtoList.get(i).getName());
+        }
+
+        return orderDetailInformationDtoList;
     }
 
 }

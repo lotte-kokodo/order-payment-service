@@ -12,10 +12,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import shop.kokodo.orderpaymentservice.dto.request.OrderRequest;
-import shop.kokodo.orderpaymentservice.dto.request.OrderRequest.CouponProductPrice;
 import shop.kokodo.orderpaymentservice.dto.response.Response;
 import shop.kokodo.orderpaymentservice.dto.response.data.OrderResponse.GetOrderProduct;
 import shop.kokodo.orderpaymentservice.dto.response.data.ResultMessage;
+import shop.kokodo.orderpaymentservice.dto.response.dto.OrderDetailInformationDto;
+import shop.kokodo.orderpaymentservice.dto.response.dto.OrderInformationDto;
 import shop.kokodo.orderpaymentservice.entity.Order;
 import shop.kokodo.orderpaymentservice.message.MessageFormat;
 import shop.kokodo.orderpaymentservice.service.interfaces.OrderService;
@@ -60,6 +61,20 @@ public class OrderController {
         Order order = orderService.orderCartProducts(memberId, cartIds, productSellerMap, rateCouponIds, fixCouponIds);
 
         return Response.success(new ResultMessage(order.getId(), MessageFormat.CREATE_ORDER_SUCCESS));
+    }
+
+    /* 주문 내역 조회 */
+    @GetMapping("/{memberId}")
+    public Response orderList(@PathVariable("memberId") Long memberId) {
+        List<OrderInformationDto> orderInformationDto = orderService.getOrderList(memberId);
+        return Response.success(orderInformationDto);
+    }
+
+    /* 주문 내역 상세 조회 */
+    @GetMapping("/{memberId}/{orderId}")
+    public List<OrderDetailInformationDto> orderDetailList(@PathVariable("memberId")Long memberId, @PathVariable("orderId")Long orderId) {
+        List<OrderDetailInformationDto> orderDetailInformationDtoList = orderService.getOrderDetailList(memberId, orderId);
+        return orderDetailInformationDtoList;
     }
 
     /* 주문서 조회 API */

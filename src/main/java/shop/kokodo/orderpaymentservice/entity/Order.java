@@ -19,6 +19,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import shop.kokodo.orderpaymentservice.entity.enums.status.OrderStatus;
 
+import lombok.*;
+
 @Entity
 @Getter @Setter
 @NoArgsConstructor

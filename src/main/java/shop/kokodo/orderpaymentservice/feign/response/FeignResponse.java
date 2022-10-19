@@ -1,14 +1,7 @@
 package shop.kokodo.orderpaymentservice.feign.response;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import javax.persistence.Column;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Transient;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -101,6 +94,7 @@ public class FeignResponse {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class FixCoupon {
+
         private Long id;
         private String name;
         private LocalDateTime regdate;
@@ -111,5 +105,17 @@ public class FeignResponse {
         private Long productId;
         private Long sellerId;
         private boolean freeDelivery;
+    }
+
+    @Getter @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class Product {
+        private Long productId;
+        private Integer unitPrice;
+        private String name;
+        private String displayName;
+        private String thumbnail;
+
     }
 }
