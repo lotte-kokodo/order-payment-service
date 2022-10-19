@@ -28,6 +28,7 @@ import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.MemberDelive
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.ProductPrice;
 import shop.kokodo.orderpaymentservice.messagequeue.KafkaProducer;
 import shop.kokodo.orderpaymentservice.repository.interfaces.CartRepository;
+import shop.kokodo.orderpaymentservice.repository.interfaces.OrderProductRepository;
 import shop.kokodo.orderpaymentservice.repository.interfaces.OrderRepository;
 import shop.kokodo.orderpaymentservice.feign.client.MemberServiceClient;
 import shop.kokodo.orderpaymentservice.feign.client.ProductServiceClient;
