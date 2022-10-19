@@ -80,4 +80,36 @@ public class FeignResponse {
         private Long price; // 할인가격
         private Long productId;
     }
+
+    @Getter @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RateCoupon {
+        private Long id;
+        private String name;
+        private LocalDateTime regdate;
+        private Integer rate;
+        private Integer minPrice;
+        private LocalDateTime startDate;
+        private LocalDateTime endDate;
+        private Long productId;
+        private Long sellerId;
+
+    }
+
+    @Getter @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class FixCoupon {
+        private Long id;
+        private String name;
+        private LocalDateTime regdate;
+        private Integer price;
+        private Integer minPrice;
+        private LocalDateTime startDate;
+        private LocalDateTime endDate;
+        private Long productId;
+        private Long sellerId;
+        private boolean freeDelivery;
+    }
 }
