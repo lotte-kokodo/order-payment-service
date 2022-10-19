@@ -3,27 +3,19 @@ package shop.kokodo.orderpaymentservice.controller;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-<<<<<<< HEAD
-import org.springframework.web.bind.annotation.*;
 import shop.kokodo.orderpaymentservice.dto.request.OrderRequest;
 import shop.kokodo.orderpaymentservice.dto.response.Response;
-import shop.kokodo.orderpaymentservice.dto.response.dto.IdAndMessageDto;
 import shop.kokodo.orderpaymentservice.dto.response.dto.OrderDetailInformationDto;
 import shop.kokodo.orderpaymentservice.dto.response.dto.OrderInformationDto;
-=======
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import shop.kokodo.orderpaymentservice.dto.request.OrderRequest;
-import shop.kokodo.orderpaymentservice.dto.response.Response;
 import shop.kokodo.orderpaymentservice.dto.response.data.OrderResponse;
 import shop.kokodo.orderpaymentservice.dto.response.data.ResultMessage;
->>>>>>> e74ad32bef9ac155612c6de8c8c56b0003211f5c
 import shop.kokodo.orderpaymentservice.entity.Order;
 import shop.kokodo.orderpaymentservice.message.ResponseMessage;
 import shop.kokodo.orderpaymentservice.service.interfaces.OrderService;
@@ -67,7 +59,6 @@ public class OrderController {
         return Response.success(new ResultMessage(order.getId(), ResponseMessage.CREATE_ORDER_SUCCESS));
     }
 
-<<<<<<< HEAD
     /* 주문 내역 조회 */
     @GetMapping("/{memberId}")
     public Response orderList(@PathVariable("memberId") Long memberId) {
@@ -82,12 +73,10 @@ public class OrderController {
         return orderDetailInformationDtoList;
     }
 
-=======
     /* 주문서 조회 API */
     @GetMapping("/{memberId}/orderSheet")
     public Response getOrderSheet(@PathVariable Long memberId, @RequestParam List<Long> productIds) {
         OrderResponse.OrderSheet orderSheet = orderService.getOrderSheet(memberId, productIds);
         return Response.success(orderSheet);
     }
->>>>>>> e74ad32bef9ac155612c6de8c8c56b0003211f5c
 }

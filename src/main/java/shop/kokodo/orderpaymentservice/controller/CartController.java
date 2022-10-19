@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import shop.kokodo.orderpaymentservice.dto.request.CartRequest;
-import shop.kokodo.orderpaymentservice.dto.request.CartRequest.UpdateQty;
 import shop.kokodo.orderpaymentservice.dto.response.Response;
 import shop.kokodo.orderpaymentservice.dto.response.data.CartResponse;
 import shop.kokodo.orderpaymentservice.dto.response.data.ResultMessage;
