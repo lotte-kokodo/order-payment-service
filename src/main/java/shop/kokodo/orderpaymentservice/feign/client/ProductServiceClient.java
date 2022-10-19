@@ -27,4 +27,6 @@ public interface ProductServiceClient {
     @GetMapping("/orderProducts")
     List<FeignResponse.ProductOfOrderSheet> getOrderSheetProducts(@RequestParam List<Long> productIds);
 
+    @GetMapping("/product/list")
+    public List<FeignResponse.Product> getProductList(@RequestParam List<Long> productIdList);
 }

@@ -79,4 +79,15 @@ public class FeignResponse {
         private Long price; // 할인가격
         private Long productId;
     }
+
+    @Getter @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class Product {
+        private Long productId;
+        private Integer unitPrice;
+        private String name;
+        private String displayName;
+        private String thumbnail;
+    }
 }
