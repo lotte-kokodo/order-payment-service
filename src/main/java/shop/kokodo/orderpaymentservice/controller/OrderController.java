@@ -4,10 +4,6 @@ import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import shop.kokodo.orderpaymentservice.dto.request.OrderRequest;
-import shop.kokodo.orderpaymentservice.dto.response.Response;
-import shop.kokodo.orderpaymentservice.dto.response.dto.OrderDetailInformationDto;
-import shop.kokodo.orderpaymentservice.dto.response.dto.OrderInformationDto;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,8 +11,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import shop.kokodo.orderpaymentservice.dto.request.OrderRequest;
+import shop.kokodo.orderpaymentservice.dto.response.Response;
 import shop.kokodo.orderpaymentservice.dto.response.data.OrderResponse.GetOrderProduct;
 import shop.kokodo.orderpaymentservice.dto.response.data.ResultMessage;
+import shop.kokodo.orderpaymentservice.dto.response.dto.OrderDetailInformationDto;
+import shop.kokodo.orderpaymentservice.dto.response.dto.OrderInformationDto;
 import shop.kokodo.orderpaymentservice.entity.Order;
 import shop.kokodo.orderpaymentservice.message.MessageFormat;
 import shop.kokodo.orderpaymentservice.service.interfaces.OrderService;
@@ -37,10 +37,12 @@ public class OrderController {
     @PostMapping("/{memberId}/single-product")
     public Response orderSingleProduct(@PathVariable("memberId") Long memberId,
                                         @RequestParam("productId") Long productId,
+                                        @RequestParam("sellerId") Long sellerId,
                                         @RequestParam("qty") Integer qty,
-                                        @RequestParam("couponId") Long couponId) {
+                                        @RequestParam(name = "rateCouponId", required = false) Long rateCouponId,
+                                        @RequestParam(name = "fixCouponId", required = false) Long fixCouponId) {
 
-        Order order = orderService.orderSingleProduct(memberId, productId, qty, couponId);
+        Order order = orderService.orderSingleProduct(memberId, productId, sellerId, qty, rateCouponId, fixCouponId);
 
         return Response.success(new ResultMessage(order.getId(), MessageFormat.CREATE_ORDER_SUCCESS));
 
@@ -52,9 +54,11 @@ public class OrderController {
                                     @RequestBody OrderRequest.CreateCartOrder req) {
 
         List<Long> cartIds = req.getCartIds();
-        List<Long> couponIds = req.getCouponIds();
+        Map<Long, Long> productSellerMap = req.getProductSellerMap();
+        List<Long> rateCouponIds = req.getRateCouponIds();
+        List<Long> fixCouponIds = req.getFixCouponIds();
 
-        Order order = orderService.orderCartProducts(memberId, cartIds, couponIds);
+        Order order = orderService.orderCartProducts(memberId, cartIds, productSellerMap, rateCouponIds, fixCouponIds);
 
         return Response.success(new ResultMessage(order.getId(), MessageFormat.CREATE_ORDER_SUCCESS));
     }

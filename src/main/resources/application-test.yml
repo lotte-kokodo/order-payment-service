@@ -19,11 +19,10 @@ spring:
     url: jdbc:mysql://localhost:3306/kokodo
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
-    password: 1234
 
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     defer-datasource-initialization: true
 
     properties:
