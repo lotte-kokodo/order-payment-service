@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse;
+import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.ProductOfOrder;
 
 @FeignClient(name = "product-service", path = "/products/feign") // application name
 public interface ProductServiceClient {
@@ -18,13 +19,10 @@ public interface ProductServiceClient {
     @GetMapping("/unitPrice")
     List<FeignResponse.ProductPrice> getProducts(@ModelAttribute List<Long> productIds);
 
-    @GetMapping("/cart")
-    Map<Long, FeignResponse.ProductOfCart> getCartProducts(@RequestParam List<Long> productIds);
+    @GetMapping("/order")
+    Map<Long, ProductOfOrder> getOrderProducts(@RequestParam List<Long> productIds);
 
     @GetMapping("/stock/{productId}")
     FeignResponse.ProductStock getProductStock(@PathVariable Long productId);
-
-    @GetMapping("/orderProducts")
-    List<FeignResponse.ProductOfOrderSheet> getOrderSheetProducts(@RequestParam List<Long> productIds);
 
 }

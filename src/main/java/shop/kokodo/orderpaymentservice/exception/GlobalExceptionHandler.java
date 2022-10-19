@@ -17,5 +17,4 @@ public class GlobalExceptionHandler {
 
         return Response.failure(500, e.getMessage());
     }
-
 }

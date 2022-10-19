@@ -1,4 +1,4 @@
-package shop.kokodo.orderpaymentservice.entity.enums.order;
+package shop.kokodo.orderpaymentservice.entity.enums.status;
 
 import shop.kokodo.orderpaymentservice.entity.enums.EnumType;
 
