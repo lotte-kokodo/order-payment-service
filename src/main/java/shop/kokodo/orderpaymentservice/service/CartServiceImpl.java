@@ -72,21 +72,15 @@ public class CartServiceImpl implements CartService {
         // productId List 생성
         List<Long> productIds = carts.stream().map(Cart::getProductId).collect(Collectors.toList());
 
-        // productId(key)-cartId(value) Map 생성
-        Map<Long, Cart> productCartIdMap = carts.stream()
-            .collect(Collectors.toMap(Cart::getProductId, Function.identity()));
-
         // 상품 조회
         Map<Long, ProductOfOrder> cartProductMap = productServiceClient.getOrderProducts(productIds);
         // 비율 할인 정책 조회
         Map<Long, RateDiscountPolicy> discountProductMap = promotionServiceClient.getRateDiscountPolicy(productIds);
 
-        return productIds.stream()
-                        .map(productId ->
-                                GetCart.createGetCartResponse(productCartIdMap.get(productId),
-                                                                            cartProductMap.get(productId),
-                                                                            discountProductMap.get(productId)))
-                        .collect(Collectors.toList());
+        return carts.stream().map(cart -> GetCart.createGetCartResponse(cart,
+                                                cartProductMap.get(cart.getProductId()),
+                                                discountProductMap.get(cart.getProductId())))
+            .collect(Collectors.toList());
     }
 
     @Override
