@@ -52,7 +52,7 @@ public class CartController {
     }
 
     /* 장바구니 상품 수량 업데이트 API */
-    @PatchMapping("/{cartId}/qty")
+    @PostMapping("/{cartId}/qty")
     public Response updateQty(@PathVariable Long cartId, @RequestBody CartRequest.UpdateQty req) {
         CartResponse.UpdateCartQty updateCartQty = cartService.updateQty(cartId, req.getQty());
 
