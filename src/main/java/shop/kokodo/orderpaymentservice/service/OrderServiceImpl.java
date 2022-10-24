@@ -111,7 +111,7 @@ public class OrderServiceImpl implements OrderService {
             deliveryPrice -= 3000;
             fixCouponSellerIds.remove(sellerId);
         }
-        totalPrice -= deliveryPrice;
+        totalPrice += deliveryPrice;
 
         // 주문 생성
         Order order = Order.builder()

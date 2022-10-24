@@ -12,6 +12,7 @@ public class OrderRequest {
 
     /* 장바구니상품 주문 요청 DTO */
     @AllArgsConstructor
+    @NoArgsConstructor
     @Getter
     @Setter
     public static class CreateCartOrder {

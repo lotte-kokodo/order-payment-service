@@ -1,6 +1,8 @@
 package shop.kokodo.orderpaymentservice.feign.response;
 
 import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -59,8 +61,9 @@ public class FeignResponse {
     @Getter @Setter
     @NoArgsConstructor
     @AllArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class RateDiscountPolicy {
-        private Long id;
+        private Long rateDiscountPolicyId;
         private Integer rate; // 할인비율
         private Long productId;
     }
@@ -68,8 +71,9 @@ public class FeignResponse {
     @Getter @Setter
     @NoArgsConstructor
     @AllArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class FixDiscountPolicy {
-        private Long id;
+        private Long fixDiscountPolicyId;
         private Long price; // 할인가격
         private Long productId;
     }
@@ -77,6 +81,7 @@ public class FeignResponse {
     @Getter @Setter
     @NoArgsConstructor
     @AllArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class RateCoupon {
         private Long id;
         private String name;
@@ -93,6 +98,7 @@ public class FeignResponse {
     @Getter @Setter
     @NoArgsConstructor
     @AllArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class FixCoupon {
 
         private Long id;
@@ -110,6 +116,7 @@ public class FeignResponse {
     @Getter @Setter
     @AllArgsConstructor
     @NoArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Product {
         private Long productId;
         private Integer unitPrice;

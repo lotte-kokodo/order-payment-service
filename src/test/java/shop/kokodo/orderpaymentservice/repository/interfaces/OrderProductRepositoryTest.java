@@ -1,24 +1,16 @@
 package shop.kokodo.orderpaymentservice.repository.interfaces;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import shop.kokodo.orderpaymentservice.entity.Order;
 import shop.kokodo.orderpaymentservice.entity.OrderProduct;
-import shop.kokodo.orderpaymentservice.entity.Product;
 
 
 import javax.transaction.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
