@@ -29,7 +29,7 @@ dependencies {
 //    implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
 //    implementation 'org.springframework.cloud:spring-cloud-starter-zipkin:2.2.2.RELEASE'
 //    implementation 'org.springframework.cloud:spring-cloud-starter-config'
-    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+//    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
     implementation 'mysql:mysql-connector-java:8.0.28'
     implementation 'org.springframework.kafka:spring-kafka'

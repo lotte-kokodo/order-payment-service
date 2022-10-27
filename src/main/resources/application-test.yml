@@ -1,0 +1,14 @@
+spring:
+
+  application:
+    name: order-payment-service
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    defer-datasource-initialization: true
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.type: trace
