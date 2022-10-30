@@ -1,21 +1,22 @@
 package shop.kokodo.orderpaymentservice.repository.interfaces;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
-import shop.kokodo.orderpaymentservice.entity.Order;
+import shop.kokodo.orderpaymentservice.dto.response.dto.OrderProductDto;
 import shop.kokodo.orderpaymentservice.entity.OrderProduct;
 
 import java.util.List;
 
 @Repository
 public interface OrderProductRepository extends CrudRepository<OrderProduct, Long> {
-    @Query(value = "SELECT o, op FROM OrderProduct AS op" +
-            " LEFT JOIN Order as o" +
-            " ON o.id = op.order.id" +
-            " WHERE o.memberId = :memberId")
-    List<Object[]> findAllByMemberId(Long memberId);
+
+    //추후 querydsl확인
+    @Query(value = "SELECT product_id AS ProductId, COUNT(*) AS count, order_id AS OrderId " +
+        "FROM order_product as OrderProduct " +
+        "WHERE order_id IN :orderId " +
+        "GROUP BY order_id", nativeQuery = true)
+    List<OrderProductDto> findAllByOrderIdIn(List<Long> orderId);
 
     @Query(value = "SELECT op FROM OrderProduct AS op " +
             " WHERE op.memberId = :memberId" +
