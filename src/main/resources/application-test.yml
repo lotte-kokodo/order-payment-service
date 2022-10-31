@@ -1,12 +1,46 @@
+server:
+  port: 0
+
+eureka:
+
+  instance:
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:9001/eureka
+
 spring:
 
   application:
-    name: order-payment-service
+    name: promotion-service
+
+  zipkin:
+    base-url: http://127.0.0.1:9411
+    enabled: true
+  sleuth:
+    sampler:
+      probability: 1.0
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/kokodo?characterEncoding=utf8&serverTimezone=Asia/Seoul
+    username: root
 
   jpa:
     hibernate:
-      ddl-auto: create
-    defer-datasource-initialization: true
+      ddl-auto: update
+    #    defer-datasource-initialization: true
+
+    properties:
+      hibernate:
+        show-sql: true
+        format_sql: true
+#  sql:
+#    init:
+#      mode: always
 
 logging:
   level:
