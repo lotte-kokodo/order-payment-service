@@ -63,7 +63,7 @@ public class CartServiceImpl implements CartService {
 
         return cart;
     }
-
+    @Transactional(readOnly = true)
     @Override
     public List<CartResponse.GetCart> getCartProducts(Long memberId) {
         /* 장바구니 조회 */

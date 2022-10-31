@@ -1,9 +1,12 @@
 package shop.kokodo.orderpaymentservice.controller;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,6 +22,7 @@ import shop.kokodo.orderpaymentservice.dto.response.dto.OrderDetailInformationDt
 import shop.kokodo.orderpaymentservice.dto.response.dto.OrderInformationDto;
 import shop.kokodo.orderpaymentservice.entity.Order;
 import shop.kokodo.orderpaymentservice.message.MessageFormat;
+import shop.kokodo.orderpaymentservice.messagequeue.KafkaProducer;
 import shop.kokodo.orderpaymentservice.service.interfaces.OrderService;
 
 @Slf4j
@@ -28,10 +32,14 @@ public class OrderController {
 
     private final OrderService orderService;
 
+    private final KafkaProducer kafkaProducer;
+
     @Autowired
-    public OrderController(OrderService orderService) {
+    public OrderController(OrderService orderService, KafkaProducer kafkaProducer) {
         this.orderService = orderService;
+        this.kafkaProducer = kafkaProducer;
     }
+
 
     /* 단일 상품 주문 API */
     @PostMapping("/{memberId}/single-product")
@@ -82,5 +90,15 @@ public class OrderController {
     public Response getOrderSheet(@PathVariable Long memberId, @RequestParam List<Long> productIds) {
         Map<Long, GetOrderProduct> orderProducts = orderService.getOrderSheetProducts(memberId, productIds);
         return Response.success(orderProducts);
+    }
+
+    @GetMapping("/test/coupon")
+    public Response testUseCoupon(){
+        List<Long> list =new ArrayList<>();
+        list.add(1L);
+        list.add(2L);
+        kafkaProducer.send("kokodo-usercoupon-useage",list);
+
+        return Response.success();
     }
 }
