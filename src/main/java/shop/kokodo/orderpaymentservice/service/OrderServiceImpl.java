@@ -331,20 +331,15 @@ public class OrderServiceImpl implements OrderService {
 
         List<OrderDetailInformationDto> orderDetailInformationDtoList = new ArrayList<>();
 
-
         for (int i = 0; i < orderProductList.size(); i++) {
             OrderDetailInformationDto orderDetailInformationDto = OrderDetailInformationDto.builder()
                     .id(orderProductList.get(i).getId())
                     .name(productList.get(productIdList.get(i)).getName())
-                    .orderStatus(orderProductList.get(i).getOrder().getOrderStatus())
                     .price(orderProductList.get(i).getUnitPrice())
                     .qty(orderProductList.get(i).getQty())
                     .thumbnail(productList.get(productIdList.get(i)).getThumbnail())
                     .build();
             orderDetailInformationDtoList.add(orderDetailInformationDto);
-        }
-        for (int i = 0; i < orderDetailInformationDtoList.size(); i++) {
-            log.info("orderDetailInformationDtoList : " + orderDetailInformationDtoList.get(i).getName());
         }
 
         return orderDetailInformationDtoList;
