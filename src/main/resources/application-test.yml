@@ -15,7 +15,7 @@ eureka:
 spring:
 
   application:
-    name: promotion-service
+    name: order-service
 
   zipkin:
     base-url: http://127.0.0.1:9411
