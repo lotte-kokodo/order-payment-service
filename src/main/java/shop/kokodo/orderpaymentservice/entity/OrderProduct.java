@@ -17,6 +17,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import lombok.*;
+import shop.kokodo.orderpaymentservice.dto.request.order.SingleProductOrderDto;
 
 
 @Entity
@@ -44,7 +45,16 @@ public class OrderProduct extends Base {
     private Integer qty;
     private Integer unitPrice;
 
-    public static OrderProduct convertCartToOrderProduct(Cart cart) {
+    public static OrderProduct createOrderProduct(SingleProductOrderDto dto, Integer unitPrice) {
+        return OrderProduct.builder()
+            .memberId(dto.getMemberId())
+            .productId(dto.getProductId())
+            .qty(dto.getQty())
+            .unitPrice(unitPrice)
+            .build();
+    }
+
+    public static OrderProduct createOrderProduct(Cart cart) {
         return OrderProduct.builder()
             .memberId(cart.getMemberId())
             .productId(cart.getProductId())

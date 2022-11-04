@@ -22,7 +22,7 @@ import shop.kokodo.orderpaymentservice.entity.enums.status.OrderStatus;
 import lombok.*;
 
 @Entity
-@Getter @Setter
+@Getter
 @NoArgsConstructor
 @Table(name = "orders")
 public class Order extends Base {
@@ -47,19 +47,43 @@ public class Order extends Base {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderProduct> orderProducts = new ArrayList<>();
 
+    public static Order createOrder(Long memberId,
+                                String deliveryMemberName,
+                                String deliveryMemberAddress,
+                                Integer totalPrice,
+                                List<OrderProduct> orderProducts) {
+        Order order =  Order.builder()
+            .deliveryMemberAddress(deliveryMemberAddress)
+            .deliveryMemberName(deliveryMemberName)
+            .totalPrice(totalPrice)
+            .orderDate(LocalDateTime.now())
+            .orderStatus(OrderStatus.ORDER_SUCCESS)
+            .memberId(memberId)
+            .orderProducts(orderProducts)
+            .build();
+        orderProducts.forEach(orderProduct -> orderProduct.setOrder(order));
+        return order;
+    }
+
     @Builder
-    public Order(Long memberId,
-        OrderStatus orderStatus, String deliveryMemberName, String deliveryMemberAddress,
-        Integer totalPrice, LocalDateTime orderDate,
-        List<OrderProduct> orderProducts) {
+    private Order(Long memberId,
+                            String deliveryMemberName,
+                            String deliveryMemberAddress,
+                            Integer totalPrice,
+                            LocalDateTime orderDate,
+                            OrderStatus orderStatus,
+                            List<OrderProduct> orderProducts) {
+
         this.memberId = memberId;
-        this.orderStatus = orderStatus;
         this.deliveryMemberName = deliveryMemberName;
         this.deliveryMemberAddress = deliveryMemberAddress;
-        this.totalPrice = totalPrice;
         this.orderDate = orderDate;
-        for (OrderProduct orderProduct : orderProducts) {
-            this.orderProducts.add(orderProduct);
-        }
+        this.orderStatus = orderStatus;
+        this.totalPrice = totalPrice;
+        this.orderProducts = orderProducts;
+    }
+
+    public void changeOrderState(OrderStatus orderStatus) {
+        this.orderStatus = orderStatus;
     }
 }
