@@ -1,15 +1,14 @@
 package shop.kokodo.orderpaymentservice.service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -40,6 +39,8 @@ import shop.kokodo.orderpaymentservice.service.interfaces.OrderService;
 @Service
 public class OrderServiceImpl implements OrderService {
 
+
+
     private final OrderRepository orderRepository;
     private final CartRepository cartRepository;
     private final OrderProductRepository orderProductRepository;
@@ -49,6 +50,10 @@ public class OrderServiceImpl implements OrderService {
     private final MemberServiceClient memberServiceClient;
     private final PromotionServiceClient promotionServiceClient;
 
+    //CircuitBreaker
+    private final CircuitBreakerFactory circuitBreakerFactory;
+
+    //Kafka
     private final KafkaProducer kafkaProducer;
 
     @Autowired
@@ -59,6 +64,7 @@ public class OrderServiceImpl implements OrderService {
             MemberServiceClient memberServiceClient,
             OrderProductRepository orderProductRepository,
             PromotionServiceClient promotionServiceClient,
+            CircuitBreakerFactory circuitBreakerFactory,
             KafkaProducer kafkaProducer) {
 
         this.orderRepository = orderRepository;
@@ -67,8 +73,8 @@ public class OrderServiceImpl implements OrderService {
         this.productServiceClient = productServiceClient;
         this.memberServiceClient = memberServiceClient;
         this.promotionServiceClient = promotionServiceClient;
+        this.circuitBreakerFactory = circuitBreakerFactory;
         this.kafkaProducer = kafkaProducer;
-//        this.productRepository = productRepository;
     }
 
     @Transactional(readOnly = false)
@@ -295,7 +301,11 @@ public class OrderServiceImpl implements OrderService {
                 .map(OrderProductDto::getProductId)
                 .collect(Collectors.toList());
 
-        Map<Long, FeignResponse.Product> productList = productServiceClient.getProductList(productIdList);
+        CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitbreaker");
+        Map<Long, FeignResponse.Product> productList = circuitBreaker.run(
+                () -> productServiceClient.getProductList(productIdList),
+                throwable -> new HashMap<Long, FeignResponse.Product>()
+        );
 
         List<OrderInformationDto> response = new ArrayList<>();
         for (int i=0;i<orderProductDtoList.size();i++) {
@@ -326,8 +336,11 @@ public class OrderServiceImpl implements OrderService {
                 .map(OrderProduct::getProductId)
                 .collect(Collectors.toList());
         log.info("productIdList : " + productIdList.toString());
-
-        Map<Long, FeignResponse.Product> productList = productServiceClient.getProductList(productIdList);
+        CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitbreaker");
+        Map<Long, FeignResponse.Product> productList = circuitBreaker.run(
+                () -> productServiceClient.getProductList(productIdList),
+                throwable -> new HashMap<Long, FeignResponse.Product>()
+        );
 
         List<OrderDetailInformationDto> orderDetailInformationDtoList = new ArrayList<>();
 
