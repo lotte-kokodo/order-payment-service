@@ -10,10 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import shop.kokodo.orderpaymentservice.dto.request.MemberIdDto;
+import shop.kokodo.orderpaymentservice.dto.response.dto.CartAvailableDto;
 import shop.kokodo.orderpaymentservice.dto.response.dto.CartDto;
-import shop.kokodo.orderpaymentservice.dto.response.data.CartResponse;
-import shop.kokodo.orderpaymentservice.dto.response.data.CartResponse.UpdateCartQty;
+import shop.kokodo.orderpaymentservice.dto.response.dto.CartQtyDto;
 import shop.kokodo.orderpaymentservice.entity.Cart;
 import shop.kokodo.orderpaymentservice.entity.enums.status.CartStatus;
 import shop.kokodo.orderpaymentservice.exception.api.ApiRequestException;
@@ -91,7 +90,8 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public CartResponse.UpdateCartQty updateQty(Long cartId, Integer updatedQty) {
+    public CartAvailableDto updateQty(CartQtyDto req) {
+        Long cartId = req.getCartId();
         Optional<Cart> cart = cartRepository.findById(cartId);
 
         // 장바구니를 찾을 수 없는 경우
@@ -108,6 +108,7 @@ public class CartServiceImpl implements CartService {
         Integer stock = productStock.getStock();
 
         // 재고가 부족한 경우
+        Integer updatedQty = req.getQty();
         if (stock < updatedQty) {
             log.error("[CartServiceImpl] 장바구니 상품 수량 증가 실패 (상품 재고 부족): product_id={}, stock={}, updatedQty={}",
                 productStock.getId(), productStock.getStock(), updatedQty);
@@ -119,13 +120,13 @@ public class CartServiceImpl implements CartService {
 
             throw new ApiRequestException(
                 ExceptionMessage.createProductOutOfStockMsg(stock),
-                new UpdateCartQty(cartId, stock)
+                new CartAvailableDto(cartId, stock)
             );
         }
 
         foundCart.changeQty(updatedQty);
         cartRepository.save(foundCart);
 
-        return new UpdateCartQty(cartId, updatedQty);
+        return new CartAvailableDto(cartId, updatedQty);
     }
 }

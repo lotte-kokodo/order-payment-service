@@ -11,4 +11,5 @@ public class DtoValidationMessage {
     public static final String SELLER_ID_BLANK = "판매자 아이디 BLANK";
     public static final String QTY_BLANK = "상품수량 BLANK";
 
+    public static final String CART_ID_BLANK = "장바구니 아이디 BLANK";
 }
