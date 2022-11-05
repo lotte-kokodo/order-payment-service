@@ -13,11 +13,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import shop.kokodo.orderpaymentservice.entity.enums.status.CartStatus;
 
+@Builder
 @Entity
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 public class Cart extends Base {
 
     @Id
@@ -32,6 +32,11 @@ public class Cart extends Base {
 
     @Enumerated(EnumType.STRING)
     private CartStatus cartStatus;
+
+    public static Cart create(Long id, Long memberId, Long productId, Integer qty, Integer unitPrice,
+        CartStatus cartStatus) {
+        return new Cart(id, memberId, productId, qty, unitPrice, cartStatus);
+    }
 
     public void changeQty(Integer updatedQty) {
         qty = updatedQty;

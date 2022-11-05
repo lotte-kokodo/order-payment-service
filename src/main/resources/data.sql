@@ -18,3 +18,6 @@ INSERT INTO order_product(order_product_id, created_date, last_modified_date, me
 
 INSERT INTO cart(cart_id, created_date, last_modified_date, cart_status, member_id, product_id, qty, unit_price) VALUES(1, '2022-10-20 00:00:00', '2022-10-20 00:00:00', 'IN_CART', 1, 967, 1, 19600);
 INSERT INTO cart(cart_id, created_date, last_modified_date, cart_status, member_id, product_id, qty, unit_price) VALUES(2, '2022-10-20 00:00:00', '2022-10-20 00:00:00', 'IN_CART', 1, 717, 1, 19900);
+
+INSERT INTO cart(cart_id, created_date, last_modified_date, cart_status, member_id, product_id, qty, unit_price) VALUES(3, '2022-10-20 00:00:00', '2022-10-20 00:00:00', 'IN_CART', 1, 1, 1, 24900);
+INSERT INTO cart(cart_id, created_date, last_modified_date, cart_status, member_id, product_id, qty, unit_price) VALUES(4, '2022-10-20 00:00:00', '2022-10-20 00:00:00', 'IN_CART', 1, 2, 1, 21900);

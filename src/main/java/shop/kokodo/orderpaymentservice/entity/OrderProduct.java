@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import lombok.*;
-import shop.kokodo.orderpaymentservice.dto.request.order.SingleProductOrderDto;
+import shop.kokodo.orderpaymentservice.dto.request.SingleProductOrderDto;
 
 
 @Entity

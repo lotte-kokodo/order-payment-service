@@ -13,8 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestParam;
-import shop.kokodo.orderpaymentservice.dto.request.order.CartOrderDto;
-import shop.kokodo.orderpaymentservice.dto.request.order.SingleProductOrderDto;
+import shop.kokodo.orderpaymentservice.dto.request.CartOrderDto;
+import shop.kokodo.orderpaymentservice.dto.request.SingleProductOrderDto;
 import shop.kokodo.orderpaymentservice.dto.response.data.OrderResponse.GetOrderProduct;
 import shop.kokodo.orderpaymentservice.dto.response.dto.OrderDetailInformationDto;
 import shop.kokodo.orderpaymentservice.dto.response.dto.OrderInformationDto;
@@ -31,6 +31,7 @@ import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.MemberDelive
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.ProductOfOrder;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.RateCoupon;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.RateDiscountPolicy;
+import shop.kokodo.orderpaymentservice.feign.response.ProductDto;
 import shop.kokodo.orderpaymentservice.messagequeue.KafkaProducer;
 import shop.kokodo.orderpaymentservice.repository.interfaces.CartRepository;
 import shop.kokodo.orderpaymentservice.repository.interfaces.OrderProductRepository;
@@ -180,7 +181,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Map<Long, GetOrderProduct> getOrderSheetProducts(Long memberId, @RequestParam List<Long> productIds) {
         // 주문서 상품 정보 요청
-        Map<Long, ProductOfOrder> products = productServiceClient.getOrderProducts(productIds);
+        Map<Long, ProductDto> products = productServiceClient.getOrderProducts(productIds);
 
         // 할인률 요청
         // 비율 할인 정책 조회

@@ -1,16 +1,18 @@
 package shop.kokodo.orderpaymentservice.service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import shop.kokodo.orderpaymentservice.dto.request.MemberIdDto;
+import shop.kokodo.orderpaymentservice.dto.response.dto.CartDto;
 import shop.kokodo.orderpaymentservice.dto.response.data.CartResponse;
-import shop.kokodo.orderpaymentservice.dto.response.data.CartResponse.GetCart;
 import shop.kokodo.orderpaymentservice.dto.response.data.CartResponse.UpdateCartQty;
 import shop.kokodo.orderpaymentservice.entity.Cart;
 import shop.kokodo.orderpaymentservice.entity.enums.status.CartStatus;
@@ -18,9 +20,8 @@ import shop.kokodo.orderpaymentservice.exception.api.ApiRequestException;
 import shop.kokodo.orderpaymentservice.feign.client.ProductServiceClient;
 import shop.kokodo.orderpaymentservice.feign.client.PromotionServiceClient;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse;
-import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.ProductOfOrder;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.ProductStock;
-import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.RateDiscountPolicy;
+import shop.kokodo.orderpaymentservice.feign.response.ProductDto;
 import shop.kokodo.orderpaymentservice.message.ExceptionMessage;
 import shop.kokodo.orderpaymentservice.repository.interfaces.CartRepository;
 import shop.kokodo.orderpaymentservice.service.interfaces.CartService;
@@ -65,22 +66,28 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public List<CartResponse.GetCart> getCartProducts(Long memberId) {
-        /* 장바구니 조회 */
-        List<Cart> carts = cartRepository.findAllByMemberIdAndCartStatus(memberId, CartStatus.IN_CART);
+    public Map<Long, List<CartDto>> getCarts(Long memberId) {
 
-        // productId List 생성
+        List<Cart> carts = cartRepository.findAllByMemberIdAndCartStatus(memberId, CartStatus.IN_CART);
         List<Long> productIds = carts.stream().map(Cart::getProductId).collect(Collectors.toList());
 
-        // 상품 조회
-        Map<Long, ProductOfOrder> cartProductMap = productServiceClient.getOrderProducts(productIds);
-        // 비율 할인 정책 조회
-        Map<Long, RateDiscountPolicy> discountProductMap = promotionServiceClient.getRateDiscountPolicy(productIds);
+        Map<Long, ProductDto> cartProductMap = productServiceClient.getOrderProducts(productIds);
 
-        return carts.stream().map(cart -> GetCart.createGetCartResponse(cart,
-                                                cartProductMap.get(cart.getProductId()),
-                                                discountProductMap.get(cart.getProductId())))
+        List<CartDto> allCartDto = carts.stream().map(cart -> CartDto.create(cart, cartProductMap.get(cart.getProductId())))
             .collect(Collectors.toList());
+
+        Map<Long, List<CartDto>> sellerCartListMap = new HashMap<>();
+        allCartDto.forEach(cartDto -> {
+            Long sellerId = cartDto.getSellerId();
+
+            List<CartDto> sellerCartList = sellerCartListMap.getOrDefault(sellerId, new ArrayList<>());
+            if (sellerCartList.isEmpty()) {
+                sellerCartListMap.put(sellerId, sellerCartList);
+            }
+            sellerCartList.add(cartDto);
+        });
+
+        return sellerCartListMap;
     }
 
     @Override

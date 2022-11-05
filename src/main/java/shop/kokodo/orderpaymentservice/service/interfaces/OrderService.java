@@ -1,7 +1,7 @@
 package shop.kokodo.orderpaymentservice.service.interfaces;
 
-import shop.kokodo.orderpaymentservice.dto.request.order.CartOrderDto;
-import shop.kokodo.orderpaymentservice.dto.request.order.SingleProductOrderDto;
+import shop.kokodo.orderpaymentservice.dto.request.CartOrderDto;
+import shop.kokodo.orderpaymentservice.dto.request.SingleProductOrderDto;
 import shop.kokodo.orderpaymentservice.dto.response.data.OrderResponse.GetOrderProduct;
 import shop.kokodo.orderpaymentservice.dto.response.dto.OrderDetailInformationDto;
 import shop.kokodo.orderpaymentservice.dto.response.dto.OrderInformationDto;
@@ -9,9 +9,6 @@ import shop.kokodo.orderpaymentservice.entity.Order;
 
 import java.util.List;
 import java.util.Map;
-import shop.kokodo.orderpaymentservice.dto.request.OrderRequest.CouponProductPrice;
-import shop.kokodo.orderpaymentservice.dto.response.data.OrderResponse.GetOrderProduct;
-import shop.kokodo.orderpaymentservice.entity.Order;
 
 
 public interface OrderService {

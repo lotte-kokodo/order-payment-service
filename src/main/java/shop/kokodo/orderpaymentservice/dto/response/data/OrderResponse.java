@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.ProductOfOrder;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.RateDiscountPolicy;
+import shop.kokodo.orderpaymentservice.feign.response.ProductDto;
 
 public class OrderResponse {
 
@@ -24,7 +25,7 @@ public class OrderResponse {
 
         private Integer discRate;
 
-        public static GetOrderProduct createGetOrderProduct (ProductOfOrder product,
+        public static GetOrderProduct createGetOrderProduct (ProductDto product,
                                                     RateDiscountPolicy rateDiscountPolicy) {
 
             Integer dRate = (rateDiscountPolicy != null) ? rateDiscountPolicy.getRate() : 0;

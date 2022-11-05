@@ -1,4 +1,4 @@
-package shop.kokodo.orderpaymentservice.dto.request.order;
+package shop.kokodo.orderpaymentservice.dto.request;
 
 import java.util.List;
 import java.util.Map;
