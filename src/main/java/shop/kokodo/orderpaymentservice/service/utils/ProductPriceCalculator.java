@@ -90,15 +90,10 @@ public class ProductPriceCalculator {
         Integer deliveryPrice = 0;
 
         // 배달관련정책쿠폰(고정할인비율 및 쿠폰)이 없는 경우 배달료 추가
-        // OrderProduct 리스트를 순차적으로 반복하며 수행하는 로직이므로 여러 상품들이 동일한 판매자 아이디를 가지는 경우 발생
-        // 정책및쿠폰이 한 번 적용되면 맵, 리스트에서 제거
-        if (notExistFixDiscountPolicy(fixDiscountPolicySellerMap.get(sellerId))) {
-            deliveryPrice += DELIVERY_PRICE;
-            fixDiscountPolicySellerMap.remove(sellerId);
-        }
-        else if (notContainFixCoupon(sellerId, fixCouponSellerIds)) {
-            deliveryPrice += DELIVERY_PRICE;
-            fixCouponSellerIds.remove(sellerId);
+        if (notFixDiscountPolicyApplied(fixDiscountPolicySellerMap.get(sellerId))) {
+            if (notContainFixCoupon(sellerId, fixCouponSellerIds)) {
+                deliveryPrice += DELIVERY_PRICE;
+            }
         }
         return deliveryPrice;
     }
@@ -111,8 +106,8 @@ public class ProductPriceCalculator {
         return rateCoupon != null;
     }
 
-    protected boolean notExistFixDiscountPolicy(Boolean discountPolicyBool) {
-        return discountPolicyBool == null || discountPolicyBool;
+    protected boolean notFixDiscountPolicyApplied(Boolean discountPolicyBool) {
+        return !discountPolicyBool;
     }
 
     protected boolean notContainFixCoupon(Long sellerId, List<Long> fixCouponSellerIds) {
