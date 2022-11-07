@@ -9,21 +9,21 @@ import shop.kokodo.orderpaymentservice.message.DtoValidationMessage;
 
 @Getter @Setter
 @NoArgsConstructor
-public class SingleProductOrderDto {
+public class SingleProductOrderRequest {
 
-    @NotBlank(message = DtoValidationMessage.MEMBER_ID_NOT_BLANK)
+    @NotBlank(message = DtoValidationMessage.MEMBER_ID_NULL)
     private Long memberId;
 
-    @NotBlank(message = DtoValidationMessage.PRODUCT_ID_BLANK)
+    @NotBlank(message = DtoValidationMessage.PRODUCT_ID_NULL)
     private Long productId;
 
     @NotBlank(message = DtoValidationMessage.SELLER_ID_BLANK)
     private Long sellerId;
 
-    @NotBlank(message = DtoValidationMessage.QTY_BLANK)
+    @NotBlank(message = DtoValidationMessage.QTY_NULL)
     private Integer qty;
 
-    @NotBlank(message = DtoValidationMessage.PRODUCT_SELLER_MAP_EMPTY)
+    @NotBlank(message = DtoValidationMessage.PRODUCT_SELLER_MAP_NULL)
     private Map<Long, Long> productSellerMap;
 
     private Long rateCouponId;

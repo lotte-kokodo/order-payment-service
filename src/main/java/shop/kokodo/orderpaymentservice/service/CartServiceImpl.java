@@ -10,9 +10,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import shop.kokodo.orderpaymentservice.dto.response.dto.CartAvailableDto;
-import shop.kokodo.orderpaymentservice.dto.response.dto.CartDto;
-import shop.kokodo.orderpaymentservice.dto.response.dto.CartQtyDto;
+import shop.kokodo.orderpaymentservice.dto.request.CartRequest;
+import shop.kokodo.orderpaymentservice.dto.response.dto.CartAvailableQtyResponse;
+import shop.kokodo.orderpaymentservice.dto.response.dto.CartResponse;
+import shop.kokodo.orderpaymentservice.dto.response.dto.CartQtyRequest;
 import shop.kokodo.orderpaymentservice.entity.Cart;
 import shop.kokodo.orderpaymentservice.entity.enums.status.CartStatus;
 import shop.kokodo.orderpaymentservice.exception.api.ApiRequestException;
@@ -45,17 +46,11 @@ public class CartServiceImpl implements CartService {
     }
 
     @Transactional
-    public Cart createCart(Long memberId, Long productId, Integer qty) {
-
-        // 상품 가격
-        FeignResponse.ProductPrice productPrice = productServiceClient.getProduct(productId);
-        Integer unitPrice = productPrice.getPrice();
-
+    public Cart createCart(CartRequest req) {
         Cart cart = Cart.builder()
-            .memberId(memberId)
-            .productId(productId)
-            .qty(qty)
-            .unitPrice(unitPrice)
+            .memberId(req.getMemberId())
+            .productId(req.getProductId())
+            .qty(req.getQty())
             .cartStatus(CartStatus.IN_CART)
             .build();
 
@@ -65,21 +60,21 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public Map<Long, List<CartDto>> getCarts(Long memberId) {
+    public Map<Long, List<CartResponse>> getCarts(Long memberId) {
 
         List<Cart> carts = cartRepository.findAllByMemberIdAndCartStatus(memberId, CartStatus.IN_CART);
         List<Long> productIds = carts.stream().map(Cart::getProductId).collect(Collectors.toList());
 
         Map<Long, ProductDto> cartProductMap = productServiceClient.getOrderProducts(productIds);
 
-        List<CartDto> allCartDto = carts.stream().map(cart -> CartDto.create(cart, cartProductMap.get(cart.getProductId())))
+        List<CartResponse> allCartResponse = carts.stream().map(cart -> CartResponse.create(cart, cartProductMap.get(cart.getProductId())))
             .collect(Collectors.toList());
 
-        Map<Long, List<CartDto>> sellerCartListMap = new HashMap<>();
-        allCartDto.forEach(cartDto -> {
+        Map<Long, List<CartResponse>> sellerCartListMap = new HashMap<>();
+        allCartResponse.forEach(cartDto -> {
             Long sellerId = cartDto.getSellerId();
 
-            List<CartDto> sellerCartList = sellerCartListMap.getOrDefault(sellerId, new ArrayList<>());
+            List<CartResponse> sellerCartList = sellerCartListMap.getOrDefault(sellerId, new ArrayList<>());
             if (sellerCartList.isEmpty()) {
                 sellerCartListMap.put(sellerId, sellerCartList);
             }
@@ -90,7 +85,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public CartAvailableDto updateQty(CartQtyDto req) {
+    public CartAvailableQtyResponse updateQty(CartQtyRequest req) {
         Long cartId = req.getCartId();
         Optional<Cart> cart = cartRepository.findById(cartId);
 
@@ -120,13 +115,13 @@ public class CartServiceImpl implements CartService {
 
             throw new ApiRequestException(
                 ExceptionMessage.createProductOutOfStockMsg(stock),
-                new CartAvailableDto(cartId, stock)
+                new CartAvailableQtyResponse(cartId, stock)
             );
         }
 
         foundCart.changeQty(updatedQty);
         cartRepository.save(foundCart);
 
-        return new CartAvailableDto(cartId, updatedQty);
+        return new CartAvailableQtyResponse(cartId, updatedQty);
     }
 }

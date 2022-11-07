@@ -13,8 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestParam;
-import shop.kokodo.orderpaymentservice.dto.request.CartOrderDto;
-import shop.kokodo.orderpaymentservice.dto.request.SingleProductOrderDto;
+import shop.kokodo.orderpaymentservice.dto.request.CartOrderRequest;
+import shop.kokodo.orderpaymentservice.dto.request.SingleProductOrderRequest;
 import shop.kokodo.orderpaymentservice.dto.response.data.OrderResponse.GetOrderProduct;
 import shop.kokodo.orderpaymentservice.dto.response.dto.OrderDetailInformationDto;
 import shop.kokodo.orderpaymentservice.dto.response.dto.OrderInformationDto;
@@ -28,7 +28,7 @@ import shop.kokodo.orderpaymentservice.feign.client.ProductServiceClient;
 import shop.kokodo.orderpaymentservice.feign.client.PromotionServiceClient;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.MemberDeliveryInfo;
-import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.ProductOfOrder;
+import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.ProductPrice;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.RateCoupon;
 import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.RateDiscountPolicy;
 import shop.kokodo.orderpaymentservice.feign.response.ProductDto;
@@ -77,13 +77,13 @@ public class OrderServiceImpl implements OrderService {
         this.kafkaProducer = kafkaProducer;
     }
 
-    public Order orderSingleProduct(SingleProductOrderDto dto) {
+    public Order orderSingleProduct(SingleProductOrderRequest dto) {
         Long productId = dto.getProductId();
         Long memberId = dto.getMemberId();
         Integer qty = dto.getQty();
 
         // 상품 가격
-        FeignResponse.ProductPrice productPrice = productServiceClient.getProduct(productId);
+        FeignResponse.ProductPrice productPrice = productServiceClient.getProductPrice(productId);
         Integer unitPrice = productPrice.getPrice();
 
         // 주문 상품 생성
@@ -123,7 +123,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Transactional
-    public Order orderCartProducts(CartOrderDto dto) {
+    public Order orderCartProducts(CartOrderRequest dto) {
 
         Map<Long, Long> productSellerMap = dto.getProductSellerMap();
         List<Long> rateCouponIds = dto.getRateCouponIds();
@@ -132,9 +132,11 @@ public class OrderServiceImpl implements OrderService {
         // '장바구니상품' 조회
         List<Cart> carts = cartRepository.findByIdIn(dto.getCartIds());
 
+        List<Long> cartProductIds = carts.stream().map(Cart::getProductId).collect(Collectors.toList());
+        Map<Long, Integer> productPriceMap = productServiceClient.getProductPrices(cartProductIds);
         // 주문 상품 생성
         List<OrderProduct> orderProducts = carts.stream()
-            .map(OrderProduct::createOrderProduct)
+            .map((cart) -> OrderProduct.createOrderProduct(cart, productPriceMap.get(cart.getProductId())))
             .collect(Collectors.toList());
 
         List<Long> productIds = new ArrayList<>();

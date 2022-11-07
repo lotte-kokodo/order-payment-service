@@ -11,12 +11,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import shop.kokodo.orderpaymentservice.dto.request.CartRequest;
 import shop.kokodo.orderpaymentservice.dto.response.Response;
 import shop.kokodo.orderpaymentservice.dto.response.data.ResultMessage;
-import shop.kokodo.orderpaymentservice.dto.response.dto.CartAvailableDto;
-import shop.kokodo.orderpaymentservice.dto.response.dto.CartDto;
-import shop.kokodo.orderpaymentservice.dto.response.dto.CartQtyDto;
+import shop.kokodo.orderpaymentservice.dto.response.dto.CartAvailableQtyResponse;
+import shop.kokodo.orderpaymentservice.dto.response.dto.CartResponse;
+import shop.kokodo.orderpaymentservice.dto.response.dto.CartQtyRequest;
 import shop.kokodo.orderpaymentservice.entity.Cart;
 import shop.kokodo.orderpaymentservice.message.MessageFormat;
 import shop.kokodo.orderpaymentservice.service.interfaces.CartService;
@@ -34,12 +36,10 @@ public class CartController {
     }
 
     /* 장바구니 상품 생성 API */
-    @PostMapping("/{memberId}")
-    public Response createCart(@PathVariable Long memberId,
-                                @RequestParam Long productId,
-                                @RequestParam Integer qty) {
+    @PostMapping
+    public Response createCart(@Valid @RequestBody CartRequest req) {
 
-        Cart cart = cartService.createCart(memberId, productId, qty);
+        Cart cart = cartService.createCart(req);
 
         return Response.success(new ResultMessage(cart.getId(), MessageFormat.CREATE_CART_SUCCESS));
     }
@@ -48,15 +48,15 @@ public class CartController {
     @GetMapping
     public Response getCarts(@RequestHeader Long memberId) {
 
-        Map<Long, List<CartDto>> carts = cartService.getCarts(memberId);
+        Map<Long, List<CartResponse>> carts = cartService.getCarts(memberId);
 
         return Response.success(carts);
     }
 
     /* 장바구니 상품 수량 업데이트 API */
     @PostMapping("/qty")
-    public Response updateQty(@Valid @RequestBody CartQtyDto req) {
-        CartAvailableDto updateCartQty = cartService.updateQty(req);
+    public Response updateQty(@Valid @RequestBody CartQtyRequest req) {
+        CartAvailableQtyResponse updateCartQty = cartService.updateQty(req);
 
         return Response.success(updateCartQty);
     }

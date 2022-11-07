@@ -12,14 +12,14 @@ import shop.kokodo.orderpaymentservice.message.DtoValidationMessage;
 @NoArgsConstructor
 @Getter
 @Setter
-public class CartQtyDto {
-    @NotNull(message = DtoValidationMessage.MEMBER_ID_NOT_BLANK)
+public class CartQtyRequest {
+    @NotNull(message = DtoValidationMessage.MEMBER_ID_NULL)
     private Long memberId;
 
-    @NotNull(message = DtoValidationMessage.CART_ID_BLANK)
+    @NotNull(message = DtoValidationMessage.CART_ID_NULL)
     private Long cartId;
 
-    @NotNull(message = DtoValidationMessage.QTY_BLANK)
+    @NotNull(message = DtoValidationMessage.QTY_NULL)
     private Integer qty;
 
 }

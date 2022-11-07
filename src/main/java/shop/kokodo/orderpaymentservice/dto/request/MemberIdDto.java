@@ -12,7 +12,7 @@ import shop.kokodo.orderpaymentservice.message.DtoValidationMessage;
 @AllArgsConstructor
 public class MemberIdDto {
 
-    @NotBlank(message = DtoValidationMessage.MEMBER_ID_NOT_BLANK)
+    @NotBlank(message = DtoValidationMessage.MEMBER_ID_NULL)
     private Long memberId;
 
 }

@@ -14,15 +14,15 @@ import shop.kokodo.orderpaymentservice.message.DtoValidationMessage;
  */
 @Getter @Setter
 @NoArgsConstructor
-public class CartOrderDto {
+public class CartOrderRequest {
 
-    @NotBlank(message = DtoValidationMessage.MEMBER_ID_NOT_BLANK)
+    @NotBlank(message = DtoValidationMessage.MEMBER_ID_NULL)
     private Long memberId;
 
-    @NotEmpty(message = DtoValidationMessage.CART_IDS_EMPTY)
+    @NotEmpty(message = DtoValidationMessage.CART_IDS_NULL)
     private List<Long> cartIds;
 
-    @NotEmpty(message = DtoValidationMessage.PRODUCT_SELLER_MAP_EMPTY)
+    @NotEmpty(message = DtoValidationMessage.PRODUCT_SELLER_MAP_NULL)
     private Map<Long, Long> productSellerMap;
 
     private List<Long> rateCouponIds;

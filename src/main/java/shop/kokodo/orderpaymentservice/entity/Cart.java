@@ -28,14 +28,13 @@ public class Cart extends Base {
     private Long memberId;
     private Long productId;
     private Integer qty;
-    private Integer unitPrice;
 
     @Enumerated(EnumType.STRING)
     private CartStatus cartStatus;
 
-    public static Cart create(Long id, Long memberId, Long productId, Integer qty, Integer unitPrice,
+    public static Cart create(Long id, Long memberId, Long productId, Integer qty,
         CartStatus cartStatus) {
-        return new Cart(id, memberId, productId, qty, unitPrice, cartStatus);
+        return new Cart(id, memberId, productId, qty, cartStatus);
     }
 
     public void changeQty(Integer updatedQty) {

@@ -9,30 +9,28 @@ import shop.kokodo.orderpaymentservice.feign.response.ProductDto;
 
 @Getter @ToString
 @NoArgsConstructor
-public class CartDto {
+public class CartResponse {
     private Long cartId;
     private Long productId;
     private String productThumbnail;
     private String productName;
     private Integer qty;
     private Integer unitPrice;
-    private Integer totalPrice; // 총 가격 (할인 적용 전)
     private Long sellerId;
 
 
-    public static CartDto create (Cart cart, ProductDto productDto) {
-        return new CartDto(cart, productDto);
+    public static CartResponse create (Cart cart, ProductDto productDto) {
+        return new CartResponse(cart, productDto);
     }
 
     @Builder
-    public CartDto(Cart cart, ProductDto productDto) {
+    public CartResponse(Cart cart, ProductDto productDto) {
         this.cartId = cart.getId();
         this.productId = productDto.getId();
         this.productThumbnail = productDto.getThumbnail();
         this.productName = productDto.getName();
         this.qty = cart.getQty();
-        this.unitPrice = cart.getUnitPrice();
-        this.totalPrice = cart.getUnitPrice()*cart.getQty();
+        this.unitPrice = productDto.getPrice();
         this.sellerId = productDto.getSellerId();
     }
 }

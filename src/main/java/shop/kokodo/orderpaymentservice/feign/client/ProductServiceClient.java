@@ -15,10 +15,10 @@ import shop.kokodo.orderpaymentservice.feign.response.ProductDto;
 public interface ProductServiceClient {
 
     @GetMapping("/unitPrice/{productId}")
-    FeignResponse.ProductPrice getProduct(@PathVariable Long productId);
+    FeignResponse.ProductPrice getProductPrice(@PathVariable Long productId);
 
     @GetMapping("/unitPrice")
-    List<FeignResponse.ProductPrice> getProducts(@ModelAttribute List<Long> productIds);
+    Map<Long, Integer> getProductPrices(@ModelAttribute List<Long> productIds);
 
     @GetMapping("/order")
     Map<Long, ProductDto> getOrderProducts(@RequestParam List<Long> productIds);

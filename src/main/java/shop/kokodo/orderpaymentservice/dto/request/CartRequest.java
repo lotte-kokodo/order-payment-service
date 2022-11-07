@@ -1,23 +1,26 @@
 package shop.kokodo.orderpaymentservice.dto.request;
 
-import java.util.List;
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+import shop.kokodo.orderpaymentservice.message.DtoValidationMessage;
 
+/**
+ * 장바구니 생성 요청 DTO
+ */
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class CartRequest {
 
-    /* 장바구니상품 수량 업데이트 요청 DTO */
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Getter @Setter
-    public static class UpdateQty {
+    @NotNull(message = DtoValidationMessage.MEMBER_ID_NULL)
+    private Long memberId;
 
-        @NotBlank
-        private Integer qty;
+    @NotNull(message = DtoValidationMessage.PRODUCT_ID_NULL)
+    private Long productId;
 
-    }
+    @NotNull(message = DtoValidationMessage.QTY_NULL)
+    private Integer qty;
 
 }

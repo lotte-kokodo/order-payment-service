@@ -1,7 +1,7 @@
 package shop.kokodo.orderpaymentservice.service.interfaces;
 
-import shop.kokodo.orderpaymentservice.dto.request.CartOrderDto;
-import shop.kokodo.orderpaymentservice.dto.request.SingleProductOrderDto;
+import shop.kokodo.orderpaymentservice.dto.request.CartOrderRequest;
+import shop.kokodo.orderpaymentservice.dto.request.SingleProductOrderRequest;
 import shop.kokodo.orderpaymentservice.dto.response.data.OrderResponse.GetOrderProduct;
 import shop.kokodo.orderpaymentservice.dto.response.dto.OrderDetailInformationDto;
 import shop.kokodo.orderpaymentservice.dto.response.dto.OrderInformationDto;
@@ -14,10 +14,10 @@ import java.util.Map;
 public interface OrderService {
 
     /* 개별 상품 주문 */
-    Order orderSingleProduct(SingleProductOrderDto dto);
+    Order orderSingleProduct(SingleProductOrderRequest dto);
 
     /* 장바구니 상품 주문 */
-    Order orderCartProducts(CartOrderDto dto);
+    Order orderCartProducts(CartOrderRequest dto);
 
     /* 주문서 조회 */
     Map<Long, GetOrderProduct> getOrderSheetProducts(Long memberId, List<Long> productIds);

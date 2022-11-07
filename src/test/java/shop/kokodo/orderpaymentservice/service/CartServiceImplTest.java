@@ -17,7 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import shop.kokodo.orderpaymentservice.dto.request.MemberIdDto;
-import shop.kokodo.orderpaymentservice.dto.response.dto.CartDto;
+import shop.kokodo.orderpaymentservice.dto.response.dto.CartResponse;
 import shop.kokodo.orderpaymentservice.entity.Cart;
 import shop.kokodo.orderpaymentservice.entity.enums.status.CartStatus;
 import shop.kokodo.orderpaymentservice.feign.client.ProductServiceClient;
@@ -71,11 +71,11 @@ class CartServiceImplTest {
         productD = ProductDto.create(4L, "https://file.rankingdak.com/image/RANK/PRODUCT/PRD001/20220831/IMG1661Nzr924640928_330_330.jpg", "네이처엠 현미밥 200g", 20900, sellerB);
         productE = ProductDto.create(5L, "https://file.rankingdak.com/image/RANK/PRODUCT/PRD001/20220817/IMG1660Feq719859887_330_330.jpg", "신선애 IQF 생 닭안심살 1kg", 7500, sellerB);
 
-        cartA = Cart.create(1L, memberId, 1L, 1, productA.getPrice(), CartStatus.IN_CART);
-        cartB = Cart.create(2L, memberId, 2L, 2, productB.getPrice(), CartStatus.IN_CART);
-        cartC = Cart.create(3L, memberId, 3L, 3, productC.getPrice(), CartStatus.IN_CART);
-        cartD = Cart.create(4L, memberId, 4L, 4, productD.getPrice(), CartStatus.IN_CART);
-        cartE = Cart.create(5L, memberId, 5L, 5, productE.getPrice(), CartStatus.IN_CART);
+        cartA = Cart.create(1L, memberId, 1L, 1, CartStatus.IN_CART);
+        cartB = Cart.create(2L, memberId, 2L, 2, CartStatus.IN_CART);
+        cartC = Cart.create(3L, memberId, 3L, 3, CartStatus.IN_CART);
+        cartD = Cart.create(4L, memberId, 4L, 4, CartStatus.IN_CART);
+        cartE = Cart.create(5L, memberId, 5L, 5, CartStatus.IN_CART);
 
         carts.add(cartA);
         carts.add(cartB);
@@ -104,7 +104,7 @@ class CartServiceImplTest {
             when(productServiceClient.getOrderProducts(productIds)).thenReturn(productMap);
 
             // [key] 판매자아이디 [value] 판매자상품리스트
-            Map<Long, List<CartDto>> sellerCartListMap = cartService.getCarts(memberId);
+            Map<Long, List<CartResponse>> sellerCartListMap = cartService.getCarts(memberId);
 
             // then
             Assertions.assertEquals(sellerCartListMap.get(sellerA).size(), 2);

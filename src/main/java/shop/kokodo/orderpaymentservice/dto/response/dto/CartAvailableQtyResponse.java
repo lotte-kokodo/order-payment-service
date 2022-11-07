@@ -8,7 +8,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class CartAvailableDto {
+public class CartAvailableQtyResponse {
 
     private Long id;
     private Integer qtyAvailable;

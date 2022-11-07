@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import shop.kokodo.orderpaymentservice.dto.request.CartOrderDto;
-import shop.kokodo.orderpaymentservice.dto.request.SingleProductOrderDto;
+import shop.kokodo.orderpaymentservice.dto.request.CartOrderRequest;
+import shop.kokodo.orderpaymentservice.dto.request.SingleProductOrderRequest;
 import shop.kokodo.orderpaymentservice.dto.response.Response;
 import shop.kokodo.orderpaymentservice.dto.response.data.OrderResponse.GetOrderProduct;
 import shop.kokodo.orderpaymentservice.dto.response.data.ResultMessage;
@@ -37,14 +37,14 @@ public class OrderController {
 
     /* 단일 상품 주문 API */
     @PostMapping("/singleProduct")
-    public Response orderSingleProduct(@Valid @RequestBody SingleProductOrderDto req) {
+    public Response orderSingleProduct(@Valid @RequestBody SingleProductOrderRequest req) {
         Order order = orderService.orderSingleProduct(req);
         return Response.success(new ResultMessage(order.getId(), MessageFormat.CREATE_ORDER_SUCCESS));
     }
 
     /* 장바구니 주문 API */
     @PostMapping("/cart")
-    public Response orderCartProduct(@Valid @RequestBody CartOrderDto req) {
+    public Response orderCartProduct(@Valid @RequestBody CartOrderRequest req) {
         Order order = orderService.orderCartProducts(req);
         return Response.success(new ResultMessage(order.getId(), MessageFormat.CREATE_ORDER_SUCCESS));
     }
