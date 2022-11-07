@@ -18,7 +18,7 @@ public interface ProductServiceClient {
     FeignResponse.ProductPrice getProductPrice(@PathVariable Long productId);
 
     @GetMapping("/unitPrice")
-    Map<Long, Integer> getProductPrices(@ModelAttribute List<Long> productIds);
+    Map<Long, Integer> getProductsPrice(@RequestParam List<Long> productIds);
 
     @GetMapping("/order")
     Map<Long, ProductDto> getOrderProducts(@RequestParam List<Long> productIds);

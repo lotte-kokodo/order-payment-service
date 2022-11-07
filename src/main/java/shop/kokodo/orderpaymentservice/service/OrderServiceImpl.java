@@ -90,7 +90,7 @@ public class OrderServiceImpl implements OrderService {
         List<OrderProduct> orderProducts = List.of(OrderProduct.createOrderProduct(dto, unitPrice));
 
         // 사용자 이름, 주소
-        MemberDeliveryInfo memberDeliveryInfo = memberServiceClient.getMemberAddress(dto.getMemberId());
+        MemberDeliveryInfo memberDeliveryInfo = memberServiceClient.getMemberDeliveryInfo(dto.getMemberId());
 
         // [promotion-service feign]
         // 비율할인정책, 고정할인정책, 비율쿠폰, 고정쿠폰 조회
@@ -133,7 +133,7 @@ public class OrderServiceImpl implements OrderService {
         List<Cart> carts = cartRepository.findByIdIn(dto.getCartIds());
 
         List<Long> cartProductIds = carts.stream().map(Cart::getProductId).collect(Collectors.toList());
-        Map<Long, Integer> productPriceMap = productServiceClient.getProductPrices(cartProductIds);
+        Map<Long, Integer> productPriceMap = productServiceClient.getProductsPrice(cartProductIds);
         // 주문 상품 생성
         List<OrderProduct> orderProducts = carts.stream()
             .map((cart) -> OrderProduct.createOrderProduct(cart, productPriceMap.get(cart.getProductId())))
@@ -158,7 +158,7 @@ public class OrderServiceImpl implements OrderService {
 
         // 사용자 이름, 주소
         Long memberId = dto.getMemberId();
-        MemberDeliveryInfo memberDeliveryInfo = memberServiceClient.getMemberAddress(memberId);
+        MemberDeliveryInfo memberDeliveryInfo = memberServiceClient.getMemberDeliveryInfo(memberId);
 
         Order order = Order.createOrder(memberId, memberDeliveryInfo.getName(), memberDeliveryInfo.getAddress(), totalPrice, orderProducts);
         orderRepository.save(order);

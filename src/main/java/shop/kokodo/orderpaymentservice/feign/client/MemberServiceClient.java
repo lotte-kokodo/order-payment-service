@@ -8,7 +8,7 @@ import shop.kokodo.orderpaymentservice.feign.response.FeignResponse.MemberDelive
 @FeignClient(name = "member-service", path = "/members/feign") // application name
 public interface MemberServiceClient {
 
-    @GetMapping("/address")
-    MemberDeliveryInfo getMemberAddress(@RequestHeader Long memberId);
+    @GetMapping("/deliveryInfo")
+    MemberDeliveryInfo getMemberDeliveryInfo(@RequestHeader Long memberId);
 
 }
