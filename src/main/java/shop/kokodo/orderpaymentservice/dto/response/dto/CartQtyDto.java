@@ -1,6 +1,7 @@
 package shop.kokodo.orderpaymentservice.dto.response.dto;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,11 +13,13 @@ import shop.kokodo.orderpaymentservice.message.DtoValidationMessage;
 @Getter
 @Setter
 public class CartQtyDto {
+    @NotNull(message = DtoValidationMessage.MEMBER_ID_NOT_BLANK)
+    private Long memberId;
 
-    @NotBlank(message = DtoValidationMessage.CART_ID_BLANK)
+    @NotNull(message = DtoValidationMessage.CART_ID_BLANK)
     private Long cartId;
 
-    @NotBlank(message = DtoValidationMessage.QTY_BLANK)
+    @NotNull(message = DtoValidationMessage.QTY_BLANK)
     private Integer qty;
 
 }
