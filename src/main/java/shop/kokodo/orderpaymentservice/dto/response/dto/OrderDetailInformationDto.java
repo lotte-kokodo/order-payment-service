@@ -22,6 +22,4 @@ public class OrderDetailInformationDto {
 
     private int qty;
 
-    private OrderStatus orderStatus;
-
 }
