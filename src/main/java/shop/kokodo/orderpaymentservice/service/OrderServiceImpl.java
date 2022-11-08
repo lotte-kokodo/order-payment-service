@@ -126,7 +126,7 @@ public class OrderServiceImpl implements OrderService {
         orderProduct.setOrder(order);
         orderRepository.save(order);
 
-        kafkaProducer.send("kokodo.product.de-stock", new LinkedHashMap<>() {{
+        kafkaProducer.send("product-decrease-stock", new LinkedHashMap<>() {{
             put(productId, qty);
         }});
 
@@ -218,7 +218,7 @@ public class OrderServiceImpl implements OrderService {
         // 상품 재고 감소
         Map<Long,Integer> productIdQtyMap = carts.stream()
             .collect(Collectors.toMap(Cart::getProductId, Cart::getQty));
-        kafkaProducer.send("kokodo.product.de-stock", productIdQtyMap);
+        kafkaProducer.send("product-decrease-stock", productIdQtyMap);
 
         // TODO: 주문 시 사용한 쿠폰 리스트 처리
         // [key] "couponIds"    [value] Long List
