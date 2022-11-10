@@ -61,13 +61,10 @@ class OrderControllerTest extends DocumentConfiguration {
                 .given(spec).log().all()
                 .filter(document("get-order-list"))
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .when().get("/orders/{memberId}")
+                .when().get("/orders/{memberId}", memberId)
                 .then().log().all().extract();
         //then
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
-
-//        List<OrderInformationDto> orderInformationDto = orderService.getOrderList(memberId);
-//        return Response.success(orderInformationDto);
     }
 
     @Test
@@ -81,7 +78,7 @@ class OrderControllerTest extends DocumentConfiguration {
                 .given(spec).log().all()
                 .filter(document("get-order-detail-list"))
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .when().get("/orders/{memberId}/{orderId}")
+                .when().get("/orders/{memberId}/{orderId}", memberId, orderId)
                 .then().log().all().extract();
         //then
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
