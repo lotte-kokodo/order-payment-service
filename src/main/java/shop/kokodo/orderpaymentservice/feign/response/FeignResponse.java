@@ -1,12 +1,10 @@
 package shop.kokodo.orderpaymentservice.feign.response;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 public class FeignResponse {
 
@@ -116,13 +114,15 @@ public class FeignResponse {
     @Getter @Setter
     @AllArgsConstructor
     @NoArgsConstructor
+    @ToString
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Product {
-        private Long productId;
-        private Integer unitPrice;
+        private Long id;
         private String name;
         private String displayName;
         private String thumbnail;
 
     }
+
+    public static Map<Long, Product> ProductMap;
 }

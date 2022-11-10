@@ -49,14 +49,23 @@ public class OrderController {
         return Response.success(new ResultMessage(order.getId(), MessageFormat.CREATE_ORDER_SUCCESS));
     }
 
-    /* 주문 내역 조회 */
+    /**
+     * 주문 내역 조회
+     * @param memberId
+     * @return 주문 정보 리스트
+     */
     @GetMapping("/{memberId}")
     public Response orderList(@PathVariable("memberId") Long memberId) {
         List<OrderInformationDto> orderInformationDto = orderService.getOrderList(memberId);
         return Response.success(orderInformationDto);
     }
 
-    /* 주문 내역 상세 조회 */
+    /**
+     * 주문 내역 상세 조회 API
+     * @param memberId
+     * @param orderId
+     * @return 주문 상세 정보 리스트
+     */
     @GetMapping("/{memberId}/{orderId}")
     public List<OrderDetailInformationDto> orderDetailList(@PathVariable("memberId")Long memberId, @PathVariable("orderId")Long orderId) {
         List<OrderDetailInformationDto> orderDetailInformationDtoList = orderService.getOrderDetailList(memberId, orderId);

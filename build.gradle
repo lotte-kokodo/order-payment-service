@@ -26,19 +26,30 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-amqp'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    //zipkin
     implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
     implementation 'org.springframework.cloud:spring-cloud-starter-zipkin:2.2.2.RELEASE'
+    //circuitbreaker
+//    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix'
+    implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j'
+
 //    implementation 'org.springframework.cloud:spring-cloud-starter-config'
+    //eureka
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+    //feign client
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+    //mysql
     implementation 'mysql:mysql-connector-java:8.0.28'
+    //kafka
     implementation 'org.springframework.kafka:spring-kafka'
 
+    //lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    //rabbitmq
     testImplementation 'org.springframework.amqp:spring-rabbit-test'
 
     // h2 database
@@ -50,6 +61,14 @@ dependencies {
     // model mapper
     implementation 'org.modelmapper:modelmapper:2.3.8'
 
+    //junit
+    implementation 'junit:junit'
+//    testImplementation 'org.junit.jupiter:junit-jupiter-api'
+//    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+//    testImplementation 'org.junit.vintage:junit-vintage-engine'
+
+    // restAssured
+    testImplementation 'org.springframework.restdocs:spring-restdocs-restassured'
 }
 
 dependencyManagement {
