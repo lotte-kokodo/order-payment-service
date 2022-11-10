@@ -5,9 +5,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import shop.kokodo.orderservice.dto.request.CartRequest;
@@ -33,15 +37,16 @@ public class CartServiceImpl implements CartService {
 
     private final ProductServiceClient productServiceClient;
 
-    private final PromotionServiceClient promotionServiceClient;
+    private final CircuitBreakerFactory circuitBreakerFactory;
+
 
     @Autowired
     public CartServiceImpl(CartRepository cartRepository,
         ProductServiceClient productServiceClient,
-        PromotionServiceClient promotionServiceClient) {
+        CircuitBreakerFactory circuitBreakerFactory) {
         this.cartRepository = cartRepository;
         this.productServiceClient = productServiceClient;
-        this.promotionServiceClient = promotionServiceClient;
+        this.circuitBreakerFactory = circuitBreakerFactory;
     }
 
     @Transactional
@@ -64,7 +69,12 @@ public class CartServiceImpl implements CartService {
         List<Cart> carts = cartRepository.findAllByMemberIdAndCartStatus(memberId, CartStatus.IN_CART);
         List<Long> productIds = carts.stream().map(Cart::getProductId).collect(Collectors.toList());
 
-        Map<Long, ProductDto> cartProductMap = productServiceClient.getOrderProducts(productIds);
+        Map<Long, ProductDto> cartProductMap = runCircuitBreaker("getProductOfCartCB",
+            () -> productServiceClient.getOrderProducts(productIds), throwable -> new HashMap<Long, ProductDto>());
+
+        if (cartProductMap.isEmpty()) {
+            return new HashMap<>();
+        }
 
         List<CartResponse> allCartResponse = carts.stream().map(cart -> CartResponse.create(cart, cartProductMap.get(cart.getProductId())))
             .collect(Collectors.toList());
@@ -86,20 +96,27 @@ public class CartServiceImpl implements CartService {
     @Override
     public CartAvailableQtyResponse updateQty(CartQtyRequest req) {
         Long cartId = req.getCartId();
-        Optional<Cart> cart = cartRepository.findById(cartId);
-
-        // 장바구니를 찾을 수 없는 경우
-        if (cart.isEmpty()) {
-            log.error("[CartServiceImpl] 유효하지 않은 장바구니: cart_id={}", cartId);
-            throw new ApiRequestException(
-                ExceptionMessage.createCartNotFoundMsg(cartId)
-            );
-        }
+        Cart cart = cartRepository.findById(cartId).orElseThrow(
+            () -> {
+                log.error("[CartServiceImpl] 유효하지 않은 장바구니: cart_id={}", cartId);
+                throw new ApiRequestException(
+                    ExceptionMessage.createCartNotFoundMsg(cartId)
+                );
+            }
+        );
 
         // 장바구니 상품 재고 확인
-        Cart foundCart = cart.get();
-        ProductStock productStock = productServiceClient.getProductStock(foundCart.getProductId());
+        Long productId = cart.getProductId();
+        ProductStock productStock = runCircuitBreaker("getProductStockCB",
+            () -> productServiceClient.getProductStock(productId), throwable -> new ProductStock(productId, -1));
+
         Integer stock = productStock.getStock();
+
+        // Product Service 와 통신이 되지 않는 경우
+        if (stock == -1) {
+            log.error("[CartServiceImpl] 상품 서버 통신 오류: product_id={}", productId);
+            throw new ApiRequestException(ExceptionMessage.CANNOT_BE_ATTEMPTED_COMMUNICATION);
+        }
 
         // 재고가 부족한 경우
         Integer updatedQty = req.getQty();
@@ -108,9 +125,8 @@ public class CartServiceImpl implements CartService {
                 productStock.getId(), productStock.getStock(), updatedQty);
 
             // 주문 가능한 최대 상품 개수로 업데이트
-            foundCart.changeQty(stock);
-            cartRepository.save(foundCart);
-
+            cart.changeQty(stock);
+            cartRepository.save(cart);
 
             throw new ApiRequestException(
                 ExceptionMessage.createProductOutOfStockMsg(stock),
@@ -118,9 +134,14 @@ public class CartServiceImpl implements CartService {
             );
         }
 
-        foundCart.changeQty(updatedQty);
-        cartRepository.save(foundCart);
+        cart.changeQty(updatedQty);
+        cartRepository.save(cart);
 
         return new CartAvailableQtyResponse(cartId, updatedQty);
+    }
+
+    private <T> T runCircuitBreaker(String id, Supplier<T> toRun, Function<Throwable, T> fallback) {
+        CircuitBreaker circuitBreaker = circuitBreakerFactory.create(id);
+        return circuitBreaker.run(toRun, fallback);
     }
 }
