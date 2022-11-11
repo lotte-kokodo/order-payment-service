@@ -193,26 +193,6 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional(readOnly = false)
     @Override
-    public Map<Long, GetOrderProduct> getOrderSheetProducts(Long memberId, @RequestParam List<Long> productIds) {
-        // 주문서 상품 정보 요청
-        Map<Long, ProductDto> products = productServiceClient.getOrderProducts(productIds);
-
-        // 할인률 요청
-        // 비율 할인 정책 조회
-        Map<Long, RateDiscountPolicy> discountProductMap = promotionServiceClient.getRateDiscountPolicy(productIds);
-
-        List<GetOrderProduct> orderProducts = productIds.stream()
-                .map(productId -> GetOrderProduct.createGetOrderProduct(products.get(productId),
-                        discountProductMap.get(productId)))
-                .collect(Collectors.toList());
-
-
-        return orderProducts.stream().collect(Collectors.toMap(GetOrderProduct::getProductId,
-                Function.identity()));
-    }
-
-    @Transactional(readOnly = false)
-    @Override
     public List<OrderInformationDto> getOrderList(Long memberId) {
         List<Order> orderList = orderRepository.findAllByMemberId(memberId);
 

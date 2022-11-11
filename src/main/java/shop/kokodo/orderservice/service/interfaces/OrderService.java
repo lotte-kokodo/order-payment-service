@@ -19,9 +19,6 @@ public interface OrderService {
     /* 장바구니 상품 주문 */
     Order orderCartProducts(CartOrderRequest dto);
 
-    /* 주문서 조회 */
-    Map<Long, GetOrderProduct> getOrderSheetProducts(Long memberId, List<Long> productIds);
-
     /* 주문 조회 */
     List<OrderInformationDto> getOrderList(Long memberId);
 

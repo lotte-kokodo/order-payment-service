@@ -71,11 +71,4 @@ public class OrderController {
         List<OrderDetailInformationDto> orderDetailInformationDtoList = orderService.getOrderDetailList(memberId, orderId);
         return orderDetailInformationDtoList;
     }
-
-    /* 주문서 조회 API */
-    @GetMapping("/{memberId}/orderSheet")
-    public Response getOrderSheet(@PathVariable Long memberId, @RequestParam List<Long> productIds) {
-        Map<Long, GetOrderProduct> orderProducts = orderService.getOrderSheetProducts(memberId, productIds);
-        return Response.success(orderProducts);
-    }
 }
