@@ -1,6 +1,8 @@
 package shop.kokodo.orderpaymentservice.service;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -356,6 +358,48 @@ public class OrderServiceImpl implements OrderService {
         }
 
         return orderDetailInformationDtoList;
+    }
+
+    @Override
+    public Map<Long, List<Integer>> getProductAllPrice(List<Long> productIdList) {
+//        LocalDateTime startDate = LocalDateTime.
+
+        String dateString = "20190719";
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+        Date date = new Date();
+        try {
+            date = sdf.parse(dateString);
+        }catch(Exception e) {
+        }
+
+        Calendar cal = Calendar.getInstance(Locale.KOREA);
+        //금주 시작 날짜
+        cal.add(Calendar.DATE, 2 - cal.get(Calendar.DAY_OF_WEEK));
+        TimeZone tz = cal.getTimeZone();
+        ZoneId zoneId = tz.toZoneId();
+        LocalDateTime startDate = LocalDateTime.ofInstant(cal.toInstant(), zoneId);
+
+        System.out.println(startDate);
+
+        //금주 종료 날짜
+        cal.setTime(date);
+        cal.add(Calendar.DATE, 8 - cal.get(Calendar.DAY_OF_WEEK));
+        tz = cal.getTimeZone();
+        zoneId = tz.toZoneId();
+        LocalDateTime endDate = LocalDateTime.ofInstant(cal.toInstant(), zoneId);
+
+        System.out.println(endDate);
+
+
+        List<OrderProduct> orderPriceDtoList = orderProductRepository.findByProductIdListAndSellerId(productIdList, startDate, endDate);
+        Map<Long, List<Integer>> result = new HashMap<>();
+        for(OrderProduct orderProduct : orderPriceDtoList) {
+            List<Integer> list = new ArrayList<>();
+            list.add(orderProduct.getUnitPrice());
+            list.add(orderProduct.getQty());
+            result.put(orderProduct.getProductId(), list);
+        }
+        return result;
     }
 
 }

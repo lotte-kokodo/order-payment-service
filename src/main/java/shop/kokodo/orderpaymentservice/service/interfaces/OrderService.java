@@ -7,9 +7,6 @@ import shop.kokodo.orderpaymentservice.entity.Order;
 
 import java.util.List;
 import java.util.Map;
-import shop.kokodo.orderpaymentservice.dto.request.OrderRequest.CouponProductPrice;
-import shop.kokodo.orderpaymentservice.dto.response.data.OrderResponse.GetOrderProduct;
-import shop.kokodo.orderpaymentservice.entity.Order;
 
 
 public interface OrderService {
@@ -31,4 +28,5 @@ public interface OrderService {
     /* 주문 상세 조회 */
     List<OrderDetailInformationDto> getOrderDetailList(Long memberId, Long orderId);
 
+    Map<Long, List<Integer>> getProductAllPrice(List<Long> productIdList);
 }

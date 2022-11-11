@@ -82,8 +82,7 @@ public class OrderController {
      */
     @GetMapping("/{memberId}/{orderId}")
     public List<OrderDetailInformationDto> orderDetailList(@PathVariable("memberId")Long memberId, @PathVariable("orderId")Long orderId) {
-        List<OrderDetailInformationDto> orderDetailInformationDtoList = orderService.getOrderDetailList(memberId, orderId);
-        return orderDetailInformationDtoList;
+        return orderService.getOrderDetailList(memberId, orderId);
     }
 
     /* 주문서 조회 API */
@@ -92,4 +91,15 @@ public class OrderController {
         Map<Long, GetOrderProduct> orderProducts = orderService.getOrderSheetProducts(memberId, productIds);
         return Response.success(orderProducts);
     }
+
+    /**
+     * productId로 가격과 갯수를 조회하는 API
+     * @param productIdList
+     * @return Map<productId, List<qty, unitPrice>>
+     */
+    @GetMapping("/feign/product")
+    public Map<Long, List<Integer>> findByProductId(@RequestParam List<Long> productIdList) {
+        return orderService.getProductAllPrice(productIdList);
+    }
+
 }
