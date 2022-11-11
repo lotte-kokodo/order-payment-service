@@ -25,13 +25,19 @@ public class CartResponse {
 
     @Builder
     public CartResponse(Cart cart, ProductDto productDto) {
-        this.cartId = cart.getId();
-        this.productId = productDto.getId();
-        this.productThumbnail = productDto.getThumbnail();
-        this.productName = productDto.getName();
-        this.qty = cart.getQty();
-        this.unitPrice = productDto.getPrice();
-        this.sellerId = productDto.getSellerId();
+        if (productDto == null) {
+            this.cartId = cart.getId();
+            this.productId = -1L;
+        }
+        else {
+            this.cartId = cart.getId();
+            this.productId = productDto.getId();
+            this.productThumbnail = productDto.getThumbnail();
+            this.productName = productDto.getName();
+            this.qty = cart.getQty();
+            this.unitPrice = productDto.getPrice();
+            this.sellerId = productDto.getSellerId();
+        }
     }
 }
 

@@ -72,10 +72,6 @@ public class CartServiceImpl implements CartService {
         Map<Long, ProductDto> cartProductMap = runCircuitBreaker("getProductOfCartCB",
             () -> productServiceClient.getOrderProducts(productIds), throwable -> new HashMap<Long, ProductDto>());
 
-        if (cartProductMap.isEmpty()) {
-            return new HashMap<>();
-        }
-
         List<CartResponse> allCartResponse = carts.stream().map(cart -> CartResponse.create(cart, cartProductMap.get(cart.getProductId())))
             .collect(Collectors.toList());
 

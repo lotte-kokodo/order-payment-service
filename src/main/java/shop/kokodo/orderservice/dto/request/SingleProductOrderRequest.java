@@ -2,6 +2,7 @@ package shop.kokodo.orderservice.dto.request;
 
 import java.util.Map;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,19 +12,19 @@ import shop.kokodo.orderservice.message.DtoValidationMessage;
 @NoArgsConstructor
 public class SingleProductOrderRequest {
 
-    @NotBlank(message = DtoValidationMessage.MEMBER_ID_NULL)
+    @NotNull(message = DtoValidationMessage.MEMBER_ID_NULL)
     private Long memberId;
 
-    @NotBlank(message = DtoValidationMessage.PRODUCT_ID_NULL)
+    @NotNull(message = DtoValidationMessage.PRODUCT_ID_NULL)
     private Long productId;
 
-    @NotBlank(message = DtoValidationMessage.SELLER_ID_BLANK)
+    @NotNull(message = DtoValidationMessage.SELLER_ID_BLANK)
     private Long sellerId;
 
-    @NotBlank(message = DtoValidationMessage.QTY_NULL)
+    @NotNull(message = DtoValidationMessage.QTY_NULL)
     private Integer qty;
 
-    @NotBlank(message = DtoValidationMessage.PRODUCT_SELLER_MAP_NULL)
+    @NotNull(message = DtoValidationMessage.PRODUCT_SELLER_MAP_NULL)
     private Map<Long, Long> productSellerMap;
 
     private Long rateCouponId;
