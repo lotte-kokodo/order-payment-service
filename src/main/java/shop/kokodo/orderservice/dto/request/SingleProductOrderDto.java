@@ -24,9 +24,6 @@ public class SingleProductOrderDto {
     @NotNull(message = DtoValidationMessage.QTY_NULL)
     private Integer qty;
 
-    @NotNull(message = DtoValidationMessage.PRODUCT_SELLER_MAP_NULL)
-    private Map<Long, Long> productSellerMap;
-
     private Long rateCouponId;
     private Long fixCouponId;
 
@@ -36,7 +33,6 @@ public class SingleProductOrderDto {
         this.productId = productId;
         this.sellerId = sellerId;
         this.qty = qty;
-        this.productSellerMap = productSellerMap;
         this.rateCouponId = rateCouponId;
         this.fixCouponId = fixCouponId;
     }

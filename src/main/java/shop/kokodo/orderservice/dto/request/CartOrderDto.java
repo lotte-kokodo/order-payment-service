@@ -21,9 +21,6 @@ public class CartOrderDto {
     @NotNull(message = DtoValidationMessage.CART_IDS_NULL)
     private List<Long> cartIds;
 
-    @NotNull(message = DtoValidationMessage.PRODUCT_SELLER_MAP_NULL)
-    private Map<Long, Long> productSellerMap;
-
     private List<Long> rateCouponIds;
     private List<Long> fixCouponIds;
 

@@ -1,6 +1,7 @@
 package shop.kokodo.orderservice.dto.response;
 
 import lombok.*;
+import shop.kokodo.orderservice.entity.enums.status.OrderStatus;
 
 @Getter
 @Setter
@@ -18,5 +19,7 @@ public class OrderDetailInformationDto {
     private int price;
 
     private int qty;
+
+    private OrderStatus orderStatus;
 
 }

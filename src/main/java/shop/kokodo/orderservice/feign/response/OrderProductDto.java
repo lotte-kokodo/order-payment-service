@@ -10,5 +10,6 @@ public class OrderProductDto {
 
     private Long id;
     private Integer price;
+    private Long sellerId;
 
 }

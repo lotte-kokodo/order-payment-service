@@ -132,7 +132,6 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = false)
     public Order orderCartProducts(CartOrderDto dto) {
 
-        Map<Long, Long> productSellerMap = dto.getProductSellerMap();
         List<Long> rateCouponIds = dto.getRateCouponIds();
         List<Long> fixCouponIds = dto.getFixCouponIds();
 
@@ -140,14 +139,15 @@ public class OrderServiceImpl implements OrderService {
         List<Cart> carts = cartRepository.findByIdIn(dto.getCartIds());
 
         List<Long> cartProductIds = carts.stream().map(Cart::getProductId).collect(Collectors.toList());
-        Map<Long, OrderProductDto> productPriceMap = productServiceClient.getCartOrderProduct(cartProductIds);
+        Map<Long, OrderProductDto> orderProductDtoMap = productServiceClient.getCartOrderProduct(cartProductIds);
 
         // 주문 상품 생성
         List<OrderProduct> orderProducts = carts.stream()
-            .map((cart) -> OrderProduct.createOrderProduct(cart, productPriceMap.get(cart.getProductId())))
+            .map((cart) -> OrderProduct.createOrderProduct(cart, orderProductDtoMap.get(cart.getProductId())))
             .collect(Collectors.toList());
 
-
+        Map<Long, Long> productSellerMap = orderProductDtoMap.values().stream()
+            .collect(Collectors.toMap(OrderProductDto::getId, OrderProductDto::getSellerId));
         List<Long> productIds = new ArrayList<>();
         List<Long> sellerIds = new ArrayList<>();
         productSellerMap.keySet().forEach((productId) -> {
@@ -253,6 +253,7 @@ public class OrderServiceImpl implements OrderService {
                     .price(orderProductList.get(i).getUnitPrice())
                     .qty(orderProductList.get(i).getQty())
                     .thumbnail(productList.get(productIdList.get(i)).getThumbnail())
+                    .orderStatus(orderProductList.get(i).getOrder().getOrderStatus())
                     .build();
             orderDetailInformationDtoList.add(orderDetailInformationDto);
         }
