@@ -1,16 +1,14 @@
-package shop.kokodo.orderservice.dto.response.dto;
+package shop.kokodo.orderservice.feign.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@AllArgsConstructor
+@Getter @Setter
 @NoArgsConstructor
-@Getter
-public class CartAvailableQtyResponse {
-
+@AllArgsConstructor
+public class ProductStockDto {
     private Long id;
-    private Integer qtyAvailable;
-
+    private Integer stock;
 }

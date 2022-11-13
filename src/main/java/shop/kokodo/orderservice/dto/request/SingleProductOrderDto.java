@@ -10,7 +10,7 @@ import shop.kokodo.orderservice.message.DtoValidationMessage;
 
 @Getter @Setter
 @NoArgsConstructor
-public class SingleProductOrderRequest {
+public class SingleProductOrderDto {
 
     @NotNull(message = DtoValidationMessage.MEMBER_ID_NULL)
     private Long memberId;
@@ -30,7 +30,7 @@ public class SingleProductOrderRequest {
     private Long rateCouponId;
     private Long fixCouponId;
 
-    public SingleProductOrderRequest(Long memberId, Long productId, Long sellerId,
+    public SingleProductOrderDto(Long memberId, Long productId, Long sellerId,
         Integer qty, Map<Long, Long> productSellerMap, Long rateCouponId, Long fixCouponId) {
         this.memberId = memberId;
         this.productId = productId;

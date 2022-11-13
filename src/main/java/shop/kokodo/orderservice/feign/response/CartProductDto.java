@@ -7,7 +7,7 @@ import lombok.Setter;
 
 @Getter @Setter
 @NoArgsConstructor
-public class ProductDto {
+public class CartProductDto {
 
     private Long id;
     private String thumbnail;
@@ -15,12 +15,12 @@ public class ProductDto {
     private Long sellerId;
     private Integer price;
 
-    public static ProductDto create(Long id, String thumbnail, String name, Integer price, Long sellerId) {
-        return new ProductDto(id, thumbnail, name, price, sellerId);
+    public static CartProductDto create(Long id, String thumbnail, String name, Integer price, Long sellerId) {
+        return new CartProductDto(id, thumbnail, name, price, sellerId);
     }
 
     @Builder
-    public ProductDto(Long id, String thumbnail, String name, Integer price, Long sellerId) {
+    public CartProductDto(Long id, String thumbnail, String name, Integer price, Long sellerId) {
         this.id = id;
         this.thumbnail = thumbnail;
         this.name = name;

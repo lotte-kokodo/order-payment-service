@@ -13,7 +13,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import lombok.*;
-import shop.kokodo.orderservice.dto.request.SingleProductOrderRequest;
+import shop.kokodo.orderservice.dto.request.SingleProductOrderDto;
+import shop.kokodo.orderservice.feign.response.OrderProductDto;
 
 
 @Entity
@@ -41,21 +42,23 @@ public class OrderProduct extends Base {
     private Integer qty;
     private Integer unitPrice;
 
-    public static OrderProduct createOrderProduct(SingleProductOrderRequest dto, Integer unitPrice) {
+    public static OrderProduct createOrderProduct(SingleProductOrderDto dto, OrderProductDto orderProductDto) {
+        Long productId = dto.getProductId();
+
         return OrderProduct.builder()
             .memberId(dto.getMemberId())
-            .productId(dto.getProductId())
+            .productId(productId)
             .qty(dto.getQty())
-            .unitPrice(unitPrice)
+            .unitPrice(orderProductDto.getPrice())
             .build();
     }
 
-    public static OrderProduct createOrderProduct(Cart cart, Integer productPrice) {
+    public static OrderProduct createOrderProduct(Cart cart, OrderProductDto orderProductDto) {
         return OrderProduct.builder()
             .memberId(cart.getMemberId())
             .productId(cart.getProductId())
             .qty(cart.getQty())
-            .unitPrice(productPrice)
+            .unitPrice(orderProductDto.getPrice())
             .build();
     }
 

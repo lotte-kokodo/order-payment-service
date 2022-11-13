@@ -1,4 +1,4 @@
-package shop.kokodo.orderservice.dto.response;
+package shop.kokodo.orderservice.controller.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AccessLevel;

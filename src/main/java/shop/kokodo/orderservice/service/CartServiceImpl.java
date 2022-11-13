@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -14,17 +13,15 @@ import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import shop.kokodo.orderservice.dto.request.CartRequest;
-import shop.kokodo.orderservice.dto.response.dto.CartAvailableQtyResponse;
-import shop.kokodo.orderservice.dto.response.dto.CartResponse;
-import shop.kokodo.orderservice.dto.response.dto.CartQtyRequest;
+import shop.kokodo.orderservice.dto.request.CartDto;
+import shop.kokodo.orderservice.dto.response.CartAvailableQtyDto;
+import shop.kokodo.orderservice.dto.request.CartQtyDto;
 import shop.kokodo.orderservice.entity.Cart;
 import shop.kokodo.orderservice.entity.enums.status.CartStatus;
 import shop.kokodo.orderservice.exception.api.ApiRequestException;
 import shop.kokodo.orderservice.feign.client.ProductServiceClient;
-import shop.kokodo.orderservice.feign.client.PromotionServiceClient;
-import shop.kokodo.orderservice.feign.response.FeignResponse.ProductStock;
-import shop.kokodo.orderservice.feign.response.ProductDto;
+import shop.kokodo.orderservice.feign.response.CartProductDto;
+import shop.kokodo.orderservice.feign.response.ProductStockDto;
 import shop.kokodo.orderservice.message.ExceptionMessage;
 import shop.kokodo.orderservice.repository.interfaces.CartRepository;
 import shop.kokodo.orderservice.service.interfaces.CartService;
@@ -50,7 +47,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Transactional
-    public Cart createCart(CartRequest req) {
+    public Cart createCart(CartDto req) {
         Cart cart = Cart.builder()
             .memberId(req.getMemberId())
             .productId(req.getProductId())
@@ -64,22 +61,22 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public Map<Long, List<CartResponse>> getCarts(Long memberId) {
+    public Map<Long, List<shop.kokodo.orderservice.dto.response.CartDto>> getCarts(Long memberId) {
 
         List<Cart> carts = cartRepository.findAllByMemberIdAndCartStatus(memberId, CartStatus.IN_CART);
         List<Long> productIds = carts.stream().map(Cart::getProductId).collect(Collectors.toList());
 
-        Map<Long, ProductDto> cartProductMap = runCircuitBreaker("getProductOfCartCB",
-            () -> productServiceClient.getOrderProducts(productIds), throwable -> new HashMap<Long, ProductDto>());
+        Map<Long, CartProductDto> cartProductMap = runCircuitBreaker("getProductOfCartCB",
+            () -> productServiceClient.getOrderProducts(productIds), throwable -> new HashMap<Long, CartProductDto>());
 
-        List<CartResponse> allCartResponse = carts.stream().map(cart -> CartResponse.create(cart, cartProductMap.get(cart.getProductId())))
+        List<shop.kokodo.orderservice.dto.response.CartDto> allCartDto = carts.stream().map(cart -> shop.kokodo.orderservice.dto.response.CartDto.create(cart, cartProductMap.get(cart.getProductId())))
             .collect(Collectors.toList());
 
-        Map<Long, List<CartResponse>> sellerCartListMap = new HashMap<>();
-        allCartResponse.forEach(cartDto -> {
+        Map<Long, List<shop.kokodo.orderservice.dto.response.CartDto>> sellerCartListMap = new HashMap<>();
+        allCartDto.forEach(cartDto -> {
             Long sellerId = cartDto.getSellerId();
 
-            List<CartResponse> sellerCartList = sellerCartListMap.getOrDefault(sellerId, new ArrayList<>());
+            List<shop.kokodo.orderservice.dto.response.CartDto> sellerCartList = sellerCartListMap.getOrDefault(sellerId, new ArrayList<>());
             if (sellerCartList.isEmpty()) {
                 sellerCartListMap.put(sellerId, sellerCartList);
             }
@@ -90,7 +87,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public CartAvailableQtyResponse updateQty(CartQtyRequest req) {
+    public CartAvailableQtyDto updateQty(CartQtyDto req) {
         Long cartId = req.getCartId();
         Cart cart = cartRepository.findById(cartId).orElseThrow(
             () -> {
@@ -103,8 +100,8 @@ public class CartServiceImpl implements CartService {
 
         // 장바구니 상품 재고 확인
         Long productId = cart.getProductId();
-        ProductStock productStock = runCircuitBreaker("getProductStockCB",
-            () -> productServiceClient.getProductStock(productId), throwable -> new ProductStock(productId, -1));
+        ProductStockDto productStock = runCircuitBreaker("getProductStockCB",
+            () -> productServiceClient.getProductStock(productId), throwable -> new ProductStockDto(productId, -1));
 
         Integer stock = productStock.getStock();
 
@@ -126,14 +123,14 @@ public class CartServiceImpl implements CartService {
 
             throw new ApiRequestException(
                 ExceptionMessage.createProductOutOfStockMsg(stock),
-                new CartAvailableQtyResponse(cartId, stock)
+                new CartAvailableQtyDto(cartId, stock)
             );
         }
 
         cart.changeQty(updatedQty);
         cartRepository.save(cart);
 
-        return new CartAvailableQtyResponse(cartId, updatedQty);
+        return new CartAvailableQtyDto(cartId, updatedQty);
     }
 
     private <T> T runCircuitBreaker(String id, Supplier<T> toRun, Function<Throwable, T> fallback) {

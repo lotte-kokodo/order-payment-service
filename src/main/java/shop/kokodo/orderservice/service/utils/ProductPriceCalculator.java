@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Component;
 import shop.kokodo.orderservice.entity.OrderProduct;
-import shop.kokodo.orderservice.feign.response.FeignResponse.RateCoupon;
-import shop.kokodo.orderservice.feign.response.FeignResponse.RateDiscountPolicy;
+import shop.kokodo.orderservice.feign.response.RateCouponDto;
+import shop.kokodo.orderservice.feign.response.RateDiscountPolicyDto;
 
 @Component
 public class ProductPriceCalculator {
@@ -23,9 +23,9 @@ public class ProductPriceCalculator {
      */
     public Integer calcTotalPrice(List<OrderProduct> orderProducts,
         Map<Long, Long> productSellerMap,
-        Map<Long, RateDiscountPolicy> rateDiscountProductMap,
+        Map<Long, RateDiscountPolicyDto> rateDiscountProductMap,
         Map<Long, Boolean> fixDiscountPolicySellerMap,
-        Map<Long, RateCoupon> rateCouponMap,
+        Map<Long, RateCouponDto> rateCouponMap,
         List<Long> fixCouponSellerIds) {
 
         Integer totalPrice = orderProducts.stream()
@@ -35,7 +35,7 @@ public class ProductPriceCalculator {
         Integer discountPrice = orderProducts.stream()
             .map(orderProduct -> {
                 Long productId = orderProduct.getProductId();
-                RateDiscountPolicy rateDiscountPolicy = rateDiscountProductMap.get(productId);
+                RateDiscountPolicyDto rateDiscountPolicy = rateDiscountProductMap.get(productId);
                 Integer unitPrice = orderProduct.getUnitPrice();
                 Integer qty = orderProduct.getQty();
 
@@ -64,7 +64,7 @@ public class ProductPriceCalculator {
      * @return 상품에 대한 총 할인가격
      */
     protected Integer calcDiscountPrice(Integer unitPrice, Integer qty,
-        RateDiscountPolicy rateDiscountPolicy, RateCoupon rateCoupon) {
+        RateDiscountPolicyDto rateDiscountPolicy, RateCouponDto rateCoupon) {
 
         Integer productPrice = unitPrice*qty;
         Integer discPrice = 0;
@@ -98,11 +98,11 @@ public class ProductPriceCalculator {
         return deliveryPrice;
     }
 
-    protected boolean isExistRateDiscountPolicy(RateDiscountPolicy rateDiscountPolicy) {
+    protected boolean isExistRateDiscountPolicy(RateDiscountPolicyDto rateDiscountPolicy) {
         return rateDiscountPolicy != null;
     }
 
-    protected boolean isExistRateCoupon(RateCoupon rateCoupon) {
+    protected boolean isExistRateCoupon(RateCouponDto rateCoupon) {
         return rateCoupon != null;
     }
 

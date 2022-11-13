@@ -3,7 +3,7 @@ package shop.kokodo.orderservice.repository.interfaces;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
-import shop.kokodo.orderservice.dto.response.dto.OrderProductDto;
+import shop.kokodo.orderservice.dto.response.OrderProductThumbnailDto;
 import shop.kokodo.orderservice.entity.OrderProduct;
 
 import java.util.List;
@@ -16,7 +16,7 @@ public interface OrderProductRepository extends CrudRepository<OrderProduct, Lon
         "FROM order_product as OrderProduct " +
         "WHERE order_id IN :orderId " +
         "GROUP BY order_id", nativeQuery = true)
-    List<OrderProductDto> findAllByOrderIdIn(List<Long> orderId);
+    List<OrderProductThumbnailDto> findAllByOrderIdIn(List<Long> orderId);
 
     @Query(value = "SELECT op FROM OrderProduct AS op " +
             " WHERE op.memberId = :memberId" +

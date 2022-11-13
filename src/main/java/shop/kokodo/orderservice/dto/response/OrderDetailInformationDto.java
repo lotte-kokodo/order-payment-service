@@ -1,4 +1,4 @@
-package shop.kokodo.orderservice.dto.response.dto;
+package shop.kokodo.orderservice.dto.response;
 
 import lombok.*;
 
