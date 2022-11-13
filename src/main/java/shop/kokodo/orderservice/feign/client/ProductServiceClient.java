@@ -43,4 +43,10 @@ public interface ProductServiceClient {
      */
     @GetMapping("/list")
     Map<Long, ProductThumbnailDto> getProductList(@RequestParam List<Long> productIdList);
+
+    /**
+     * 판매자의 당일주문상품 개수 조회
+     */
+    @GetMapping("/seller/{sellerId}/todayOrderCount")
+    Long getTodayOrderCount(@PathVariable Long sellerId, @RequestParam List<Long> productIds);
 }
