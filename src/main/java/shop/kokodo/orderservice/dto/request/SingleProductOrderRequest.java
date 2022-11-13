@@ -29,4 +29,15 @@ public class SingleProductOrderRequest {
 
     private Long rateCouponId;
     private Long fixCouponId;
+
+    public SingleProductOrderRequest(Long memberId, Long productId, Long sellerId,
+        Integer qty, Map<Long, Long> productSellerMap, Long rateCouponId, Long fixCouponId) {
+        this.memberId = memberId;
+        this.productId = productId;
+        this.sellerId = sellerId;
+        this.qty = qty;
+        this.productSellerMap = productSellerMap;
+        this.rateCouponId = rateCouponId;
+        this.fixCouponId = fixCouponId;
+    }
 }
