@@ -67,4 +67,14 @@ public class OrderController {
         List<OrderDetailInformationDto> orderDetailInformationDtoList = orderService.getOrderDetailList(memberId, orderId);
         return orderDetailInformationDtoList;
     }
+
+    /**
+     * productId로 가격과 갯수를 조회하는 API
+     * @param productIdList
+     * @return Map<productId, List<qty, unitPrice>>
+     */
+    @GetMapping("/feign/product")
+    public Map<Long, List<Integer>> findByProductId(@RequestParam List<Long> productIdList) {
+        return orderService.getProductAllPrice(productIdList);
+    }
 }

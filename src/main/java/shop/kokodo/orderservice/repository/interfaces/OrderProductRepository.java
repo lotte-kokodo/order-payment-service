@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 import shop.kokodo.orderservice.dto.response.OrderProductThumbnailDto;
 import shop.kokodo.orderservice.entity.OrderProduct;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -22,4 +23,9 @@ public interface OrderProductRepository extends CrudRepository<OrderProduct, Lon
             " WHERE op.memberId = :memberId" +
             " AND op.order.id = :orderId ")
     List<OrderProduct> findAllByIdAndMemberId(Long memberId, Long orderId);
+
+    @Query(value = "SELECT op FROM OrderProduct op WHERE " +
+            "op.order.orderDate BETWEEN :startDate AND :endDate AND " +
+            "op.productId IN (:productIdList)")
+    List<OrderProduct> findByProductIdListAndSellerId(List<Long> productIdList, LocalDateTime startDate, LocalDateTime endDate);
 }
