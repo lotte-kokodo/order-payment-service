@@ -262,6 +262,7 @@ public class OrderServiceImpl implements OrderService {
         return orderDetailInformationDtoList;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Map<Long, List<Integer>> getProductAllPrice(List<Long> productIdList) {
 
