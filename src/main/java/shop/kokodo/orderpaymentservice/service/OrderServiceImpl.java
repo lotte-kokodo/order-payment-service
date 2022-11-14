@@ -362,34 +362,10 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Map<Long, List<Integer>> getProductAllPrice(List<Long> productIdList) {
-//        LocalDateTime startDate = LocalDateTime.
-
-        String dateString = "20190719";
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-        Date date = new Date();
-        try {
-            date = sdf.parse(dateString);
-        }catch(Exception e) {
-        }
 
         Calendar cal = Calendar.getInstance(Locale.KOREA);
-        //금주 시작 날짜
-        cal.add(Calendar.DATE, 2 - cal.get(Calendar.DAY_OF_WEEK));
-        TimeZone tz = cal.getTimeZone();
-        ZoneId zoneId = tz.toZoneId();
-        LocalDateTime startDate = LocalDateTime.ofInstant(cal.toInstant(), zoneId);
-
-        System.out.println(startDate);
-
-        //금주 종료 날짜
-        cal.setTime(date);
-        cal.add(Calendar.DATE, 8 - cal.get(Calendar.DAY_OF_WEEK));
-        tz = cal.getTimeZone();
-        zoneId = tz.toZoneId();
-        LocalDateTime endDate = LocalDateTime.ofInstant(cal.toInstant(), zoneId);
-
-        System.out.println(endDate);
-
+        LocalDateTime startDate = getDate("start");
+        LocalDateTime endDate = getDate("end");
 
         List<OrderProduct> orderPriceDtoList = orderProductRepository.findByProductIdListAndSellerId(productIdList, startDate, endDate);
         Map<Long, List<Integer>> result = new HashMap<>();
@@ -399,7 +375,23 @@ public class OrderServiceImpl implements OrderService {
             list.add(orderProduct.getQty());
             result.put(orderProduct.getProductId(), list);
         }
+
         return result;
     }
 
+    LocalDateTime getDate(String flag) {
+        Calendar cal = Calendar.getInstance(Locale.KOREA);
+        //금주 시작 날짜
+        if(flag.equals("start")) {
+            cal.add(Calendar.DATE, 2 - cal.get(Calendar.DAY_OF_WEEK));
+        }
+        //금주 종료 날짜
+        else if(flag.equals("end")){
+            cal.add(Calendar.DATE, 8 - cal.get(Calendar.DAY_OF_WEEK));
+        }
+        TimeZone tz = cal.getTimeZone();
+        ZoneId zoneId = tz.toZoneId();
+
+        return LocalDateTime.ofInstant(cal.toInstant(), zoneId);
+    }
 }
