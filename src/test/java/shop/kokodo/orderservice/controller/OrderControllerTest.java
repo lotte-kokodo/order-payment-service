@@ -3,7 +3,10 @@ package shop.kokodo.orderservice.controller;
 import io.restassured.RestAssured;
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.hibernate.Session;
 import org.junit.jupiter.api.AfterEach;
@@ -11,6 +14,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.RequestParam;
 import shop.kokodo.orderservice.DocumentConfiguration;
 
 import javax.persistence.EntityManager;
@@ -118,11 +122,11 @@ class OrderControllerTest extends DocumentConfiguration {
         assertThat(resp.statusCode()).isEqualTo(HttpStatus.OK.value());
     }
 
-    @Test
-    @DisplayName("장바구니 상품 주문")
-    public void orderCartProduct() {
-
-    }
+//    @Test
+//    @DisplayName("장바구니 상품 주문")
+//    public void orderCartProduct() {
+//
+//    }
 
 
 //    @DisplayName("정산 예정날짜 조회")
@@ -139,4 +143,29 @@ class OrderControllerTest extends DocumentConfiguration {
 //        //then
 //        assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
 //    }
+
+    @Test
+    @DisplayName("상품 아이디로 주문 내역 조회")
+    public void findByProductId() {
+        //given
+        List<Long> productIdList = new ArrayList<>();
+        productIdList.add(1L);
+        productIdList.add(2L);
+        String productIdString = "";
+        for(Long productId : productIdList) {
+            productIdString += productId + ",";
+        }
+        productIdString = productIdString.substring(0, productIdString.length() - 1);
+        //when
+        final ExtractableResponse<Response> response = RestAssured
+                .given(spec).log().all()
+                .filter(document("get-find-by-product-id"))
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .when()
+                .request().param("productIdList", productIdString)
+                .get("/orders/feign/product")
+                .then().log().all().extract();
+        //then
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
+    }
 }
