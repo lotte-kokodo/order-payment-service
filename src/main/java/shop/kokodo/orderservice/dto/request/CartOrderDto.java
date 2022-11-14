@@ -13,16 +13,13 @@ import shop.kokodo.orderservice.message.DtoValidationMessage;
  */
 @Getter @Setter
 @NoArgsConstructor
-public class CartOrderRequest {
+public class CartOrderDto {
 
     @NotNull(message = DtoValidationMessage.MEMBER_ID_NULL)
     private Long memberId;
 
     @NotNull(message = DtoValidationMessage.CART_IDS_NULL)
     private List<Long> cartIds;
-
-    @NotNull(message = DtoValidationMessage.PRODUCT_SELLER_MAP_NULL)
-    private Map<Long, Long> productSellerMap;
 
     private List<Long> rateCouponIds;
     private List<Long> fixCouponIds;

@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -13,13 +12,11 @@ import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestParam;
-import shop.kokodo.orderservice.dto.request.CartOrderRequest;
-import shop.kokodo.orderservice.dto.request.SingleProductOrderRequest;
-import shop.kokodo.orderservice.dto.response.data.OrderResponse.GetOrderProduct;
-import shop.kokodo.orderservice.dto.response.dto.OrderDetailInformationDto;
-import shop.kokodo.orderservice.dto.response.dto.OrderInformationDto;
-import shop.kokodo.orderservice.dto.response.dto.OrderProductDto;
+import shop.kokodo.orderservice.dto.request.CartOrderDto;
+import shop.kokodo.orderservice.dto.request.SingleProductOrderDto;
+import shop.kokodo.orderservice.dto.response.OrderDetailInformationDto;
+import shop.kokodo.orderservice.dto.response.OrderInformationDto;
+import shop.kokodo.orderservice.dto.response.OrderProductThumbnailDto;
 import shop.kokodo.orderservice.entity.Cart;
 import shop.kokodo.orderservice.entity.Order;
 import shop.kokodo.orderservice.entity.OrderProduct;
@@ -27,11 +24,11 @@ import shop.kokodo.orderservice.entity.enums.status.CartStatus;
 import shop.kokodo.orderservice.feign.client.MemberServiceClient;
 import shop.kokodo.orderservice.feign.client.ProductServiceClient;
 import shop.kokodo.orderservice.feign.client.PromotionServiceClient;
-import shop.kokodo.orderservice.feign.response.FeignResponse;
-import shop.kokodo.orderservice.feign.response.FeignResponse.MemberDeliveryInfo;
-import shop.kokodo.orderservice.feign.response.FeignResponse.RateCoupon;
-import shop.kokodo.orderservice.feign.response.FeignResponse.RateDiscountPolicy;
-import shop.kokodo.orderservice.feign.response.ProductDto;
+import shop.kokodo.orderservice.feign.response.OrderMemberDto;
+import shop.kokodo.orderservice.feign.response.OrderProductDto;
+import shop.kokodo.orderservice.feign.response.ProductThumbnailDto;
+import shop.kokodo.orderservice.feign.response.RateCouponDto;
+import shop.kokodo.orderservice.feign.response.RateDiscountPolicyDto;
 import shop.kokodo.orderservice.messagequeue.KafkaProducer;
 import shop.kokodo.orderservice.repository.interfaces.CartRepository;
 import shop.kokodo.orderservice.repository.interfaces.OrderProductRepository;
@@ -86,30 +83,29 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Transactional(readOnly = false)
-    public Order orderSingleProduct(SingleProductOrderRequest dto) {
+    public Order orderSingleProduct(SingleProductOrderDto dto) {
         Long productId = dto.getProductId();
         Long memberId = dto.getMemberId();
         Integer qty = dto.getQty();
 
         // 상품 가격
-        FeignResponse.ProductPrice productPrice = productServiceClient.getProductPrice(productId);
-        Integer unitPrice = productPrice.getPrice();
+        OrderProductDto orderProductDto = productServiceClient.getSingleOrderProduct(productId);
 
         // 주문 상품 생성
-        List<OrderProduct> orderProducts = List.of(OrderProduct.createOrderProduct(dto, unitPrice));
+        List<OrderProduct> orderProducts = List.of(OrderProduct.createOrderProduct(dto, orderProductDto));
 
         // 사용자 이름, 주소
-        MemberDeliveryInfo memberDeliveryInfo = memberServiceClient.getMemberDeliveryInfo(dto.getMemberId());
+        OrderMemberDto orderMemberDto = memberServiceClient.getOrderMember(dto.getMemberId());
 
         // [promotion-service feign]
         // 비율할인정책, 고정할인정책, 비율쿠폰, 고정쿠폰 조회
         Long sellerId = dto.getSellerId();
-        Map<Long, RateDiscountPolicy> rateDiscountProductMap = promotionServiceClient.getRateDiscountPolicy(List.of(productId));
+        Map<Long, RateDiscountPolicyDto> rateDiscountProductMap = promotionServiceClient.getRateDiscountPolicy(List.of(productId));
         Map<Long, Boolean> fixDiscountPolicySellerMap = promotionServiceClient.getFixDiscountPolicyStatusForFeign(List.of(productId), List.of(sellerId));
 
         Long rateCouponId = dto.getRateCouponId();
         Long fixCouponId = dto.getFixCouponId();
-        Map<Long, RateCoupon> rateCouponMap = (rateCouponId != null) ?  promotionServiceClient.findRateCouponByCouponIdList(List.of(rateCouponId)) : new LinkedHashMap<>();
+        Map<Long, RateCouponDto> rateCouponMap = (rateCouponId != null) ?  promotionServiceClient.findRateCouponByCouponIdList(List.of(rateCouponId)) : new LinkedHashMap<>();
         List<Long> fixCouponSellerIds = (fixCouponId != null) ? promotionServiceClient.findFixCouponByCouponIdList(List.of(fixCouponId)) : new ArrayList<>();
 
         // 주문총액
@@ -118,7 +114,7 @@ public class OrderServiceImpl implements OrderService {
         Integer totalPrice = productPriceCalculator.calcTotalPrice(orderProducts, productSellerMap, rateDiscountProductMap, fixDiscountPolicySellerMap, rateCouponMap, fixCouponSellerIds);
 
         // 주문 생성
-        Order order = Order.createOrder(memberId, memberDeliveryInfo.getName(), memberDeliveryInfo.getAddress(), totalPrice, orderProducts);
+        Order order = Order.createOrder(memberId, orderMemberDto.getName(), orderMemberDto.getAddress(), totalPrice, orderProducts);
         orderRepository.save(order);
 
         kafkaProducer.send("product-decrease-stock", new LinkedHashMap<>() {{
@@ -132,9 +128,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Transactional(readOnly = false)
-    public Order orderCartProducts(CartOrderRequest dto) {
+    public Order orderCartProducts(CartOrderDto dto) {
 
-        Map<Long, Long> productSellerMap = dto.getProductSellerMap();
         List<Long> rateCouponIds = dto.getRateCouponIds();
         List<Long> fixCouponIds = dto.getFixCouponIds();
 
@@ -142,14 +137,15 @@ public class OrderServiceImpl implements OrderService {
         List<Cart> carts = cartRepository.findByIdIn(dto.getCartIds());
 
         List<Long> cartProductIds = carts.stream().map(Cart::getProductId).collect(Collectors.toList());
-        Map<Long, Integer> productPriceMap = productServiceClient.getProductsPrice(cartProductIds);
+        Map<Long, OrderProductDto> orderProductDtoMap = productServiceClient.getCartOrderProduct(cartProductIds);
 
         // 주문 상품 생성
         List<OrderProduct> orderProducts = carts.stream()
-            .map((cart) -> OrderProduct.createOrderProduct(cart, productPriceMap.get(cart.getProductId())))
+            .map((cart) -> OrderProduct.createOrderProduct(cart, orderProductDtoMap.get(cart.getProductId())))
             .collect(Collectors.toList());
 
-
+        Map<Long, Long> productSellerMap = orderProductDtoMap.values().stream()
+            .collect(Collectors.toMap(OrderProductDto::getId, OrderProductDto::getSellerId));
         List<Long> productIds = new ArrayList<>();
         List<Long> sellerIds = new ArrayList<>();
         productSellerMap.keySet().forEach((productId) -> {
@@ -159,9 +155,9 @@ public class OrderServiceImpl implements OrderService {
 
         // [promotion-service feign]
         // 비율할인정책, 고정할인정책, 비율쿠폰, 고정쿠폰 조회
-        Map<Long, RateDiscountPolicy> rateDiscountProductMap = promotionServiceClient.getRateDiscountPolicy(productIds);
+        Map<Long, RateDiscountPolicyDto> rateDiscountProductMap = promotionServiceClient.getRateDiscountPolicy(productIds);
         Map<Long, Boolean> fixDiscountPolicySellerMap = promotionServiceClient.getFixDiscountPolicyStatusForFeign(productIds, sellerIds);
-        Map<Long, RateCoupon> rateCouponMap = promotionServiceClient.findRateCouponByCouponIdList(rateCouponIds);
+        Map<Long, RateCouponDto> rateCouponMap = promotionServiceClient.findRateCouponByCouponIdList(rateCouponIds);
         List<Long> fixCouponSellerIds = promotionServiceClient.findFixCouponByCouponIdList(fixCouponIds);
 
         // 주문 총 가격 계산
@@ -169,9 +165,9 @@ public class OrderServiceImpl implements OrderService {
 
         // 사용자 이름, 주소
         Long memberId = dto.getMemberId();
-        MemberDeliveryInfo memberDeliveryInfo = memberServiceClient.getMemberDeliveryInfo(memberId);
+        OrderMemberDto orderMemberDto = memberServiceClient.getOrderMember(memberId);
 
-        Order order = Order.createOrder(memberId, memberDeliveryInfo.getName(), memberDeliveryInfo.getAddress(), totalPrice, orderProducts);
+        Order order = Order.createOrder(memberId, orderMemberDto.getName(), orderMemberDto.getAddress(), totalPrice, orderProducts);
         orderRepository.save(order);
 
         // 장바구니 상태 업데이트
@@ -194,31 +190,31 @@ public class OrderServiceImpl implements OrderService {
     public List<OrderInformationDto> getOrderList(Long memberId) {
         List<Order> orderList = orderRepository.findAllByMemberId(memberId);
 
-        List<OrderProductDto> orderProductDtoList = orderProductRepository.findAllByOrderIdIn(
+        List<OrderProductThumbnailDto> orderProductThumbnailDtoList = orderProductRepository.findAllByOrderIdIn(
                 orderList.stream()
                         .map(Order::getId)
                         .collect(Collectors.toList()
                         )
         );
 
-        List<Long> productIdList = orderProductDtoList.stream()
-                .map(OrderProductDto::getProductId)
+        List<Long> productIdList = orderProductThumbnailDtoList.stream()
+                .map(OrderProductThumbnailDto::getProductId)
                 .collect(Collectors.toList());
 
         CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitbreaker");
-        Map<Long, FeignResponse.Product> productList = circuitBreaker.run(
+        Map<Long, ProductThumbnailDto> productList = circuitBreaker.run(
                 () -> productServiceClient.getProductList(productIdList),
-                throwable -> new HashMap<Long, FeignResponse.Product>()
+                throwable -> new HashMap<Long, ProductThumbnailDto>()
         );
 
         List<OrderInformationDto> response = new ArrayList<>();
-        for (int i=0;i<orderProductDtoList.size();i++) {
+        for (int i=0;i< orderProductThumbnailDtoList.size();i++) {
             Long productId = productIdList.get(i);
-            FeignResponse.Product product = productList.get(productId);
+            ProductThumbnailDto product = productList.get(productId);
 
             response.add(OrderInformationDto.builder()
                     .orderId(orderList.get(i).getId())
-                    .name(product.getName() + " 외 " + orderProductDtoList.get(i).getCount() + "건")
+                    .name(product.getName() + " 외 " + orderProductThumbnailDtoList.get(i).getCount() + "건")
                     .orderStatus(orderList.get(i).getOrderStatus())
                     .price(orderList.get(i).getTotalPrice())
                     .thumbnail(product.getThumbnail())
@@ -241,9 +237,9 @@ public class OrderServiceImpl implements OrderService {
                 .collect(Collectors.toList());
         log.info("productIdList : " + productIdList.toString());
         CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitbreaker");
-        Map<Long, FeignResponse.Product> productList = circuitBreaker.run(
+        Map<Long, ProductThumbnailDto> productList = circuitBreaker.run(
                 () -> productServiceClient.getProductList(productIdList),
-                throwable -> new HashMap<Long, FeignResponse.Product>()
+                throwable -> new HashMap<Long, ProductThumbnailDto>()
         );
 
         List<OrderDetailInformationDto> orderDetailInformationDtoList = new ArrayList<>();
@@ -255,6 +251,7 @@ public class OrderServiceImpl implements OrderService {
                     .price(orderProductList.get(i).getUnitPrice())
                     .qty(orderProductList.get(i).getQty())
                     .thumbnail(productList.get(productIdList.get(i)).getThumbnail())
+                    .orderStatus(orderProductList.get(i).getOrder().getOrderStatus())
                     .build();
             orderDetailInformationDtoList.add(orderDetailInformationDto);
         }

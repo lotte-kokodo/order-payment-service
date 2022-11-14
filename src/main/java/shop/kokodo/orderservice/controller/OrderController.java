@@ -1,7 +1,6 @@
 package shop.kokodo.orderservice.controller;
 
 import java.util.List;
-import java.util.Map;
 import javax.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,15 +9,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import shop.kokodo.orderservice.dto.request.CartOrderRequest;
-import shop.kokodo.orderservice.dto.request.SingleProductOrderRequest;
-import shop.kokodo.orderservice.dto.response.Response;
-import shop.kokodo.orderservice.dto.response.data.OrderResponse.GetOrderProduct;
-import shop.kokodo.orderservice.dto.response.data.ResultMessage;
-import shop.kokodo.orderservice.dto.response.dto.OrderDetailInformationDto;
-import shop.kokodo.orderservice.dto.response.dto.OrderInformationDto;
+import shop.kokodo.orderservice.dto.request.CartOrderDto;
+import shop.kokodo.orderservice.dto.request.SingleProductOrderDto;
+import shop.kokodo.orderservice.controller.response.Response;
+import shop.kokodo.orderservice.dto.response.OrderDetailInformationDto;
+import shop.kokodo.orderservice.dto.response.OrderInformationDto;
 import shop.kokodo.orderservice.entity.Order;
 import shop.kokodo.orderservice.message.MessageFormat;
 import shop.kokodo.orderservice.service.interfaces.OrderService;
@@ -37,16 +33,16 @@ public class OrderController {
 
     /* 단일 상품 주문 API */
     @PostMapping("/singleProduct")
-    public Response orderSingleProduct(@Valid @RequestBody SingleProductOrderRequest req) {
+    public Response orderSingleProduct(@Valid @RequestBody SingleProductOrderDto req) {
         Order order = orderService.orderSingleProduct(req);
-        return Response.success(new ResultMessage(order.getId(), MessageFormat.CREATE_ORDER_SUCCESS));
+        return Response.success(MessageFormat.CREATE_ORDER_SUCCESS);
     }
 
     /* 장바구니 주문 API */
     @PostMapping("/cart")
-    public Response orderCartProduct(@Valid @RequestBody CartOrderRequest req) {
+    public Response orderCartProduct(@Valid @RequestBody CartOrderDto req) {
         Order order = orderService.orderCartProducts(req);
-        return Response.success(new ResultMessage(order.getId(), MessageFormat.CREATE_ORDER_SUCCESS));
+        return Response.success(MessageFormat.CREATE_ORDER_SUCCESS);
     }
 
     /**
