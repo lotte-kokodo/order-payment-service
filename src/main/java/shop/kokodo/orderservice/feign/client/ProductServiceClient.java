@@ -3,6 +3,7 @@ package shop.kokodo.orderservice.feign.client;
 import java.util.List;
 import java.util.Map;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -49,4 +50,10 @@ public interface ProductServiceClient {
      */
     @GetMapping("/seller/{sellerId}/todayOrderCount")
     Long getTodayOrderCount(@PathVariable Long sellerId, @RequestParam List<Long> productIds);
+
+    /**
+     * 판매자의 당월상품 개수 조회를 위한 상품아이디리스트 조회
+     */
+    @GetMapping("/seller/{sellerId}/productId")
+    List<Long> getSellerProductIds(@PathVariable Long sellerId);
 }
