@@ -25,4 +25,6 @@ public interface OrderService {
     /* 주문 상세 조회 */
     List<OrderDetailInformationDto> getOrderDetailList(Long memberId, Long orderId);
 
+    /* 주문 금액 조회 */
+    Map<Long, List<Integer>> getProductAllPrice(List<Long> productIdList);
 }
