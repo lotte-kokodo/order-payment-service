@@ -16,5 +16,8 @@ INSERT INTO order_product(order_product_id, created_date, last_modified_date, me
 INSERT INTO order_product(order_product_id, created_date, last_modified_date, member_id, product_id, qty, unit_price, order_id) VALUES(10, '2022-10-10 11:11:54', '2022-10-10 11:11:54', 1, 47, 1, 16500, 4);
 INSERT INTO order_product(order_product_id, created_date, last_modified_date, member_id, product_id, qty, unit_price, order_id) VALUES(11, '2022-10-10 11:11:54', '2022-10-10 11:11:54', 1, 66, 1, 22900, 5);
 
-INSERT INTO cart(cart_id, created_date, last_modified_date, cart_status, member_id, product_id, qty, unit_price) VALUES(1, '2022-10-20 00:00:00', '2022-10-20 00:00:00', 'IN_CART', 1, 967, 1, 19600);
-INSERT INTO cart(cart_id, created_date, last_modified_date, cart_status, member_id, product_id, qty, unit_price) VALUES(2, '2022-10-20 00:00:00', '2022-10-20 00:00:00', 'IN_CART', 1, 717, 1, 19900);
+INSERT INTO cart(cart_id, created_date, last_modified_date, cart_status, member_id, product_id, qty) VALUES(1, '2022-10-20 00:00:00', '2022-10-20 00:00:00', 'IN_CART', 1, 30, 1);
+INSERT INTO cart(cart_id, created_date, last_modified_date, cart_status, member_id, product_id, qty) VALUES(2, '2022-10-20 00:00:00', '2022-10-20 00:00:00', 'IN_CART', 1, 40, 1);
+
+INSERT INTO cart(cart_id, created_date, last_modified_date, cart_status, member_id, product_id, qty) VALUES(3, '2022-10-20 00:00:00', '2022-10-20 00:00:00', 'IN_CART', 1, 1, 1);
+INSERT INTO cart(cart_id, created_date, last_modified_date, cart_status, member_id, product_id, qty) VALUES(4, '2022-10-20 00:00:00', '2022-10-20 00:00:00', 'IN_CART', 1, 2, 1);
