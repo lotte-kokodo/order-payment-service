@@ -258,7 +258,7 @@ public class OrderServiceImpl implements OrderService {
 
         CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitbreaker");
         Map<Long, ProductThumbnailDto> productList = circuitBreaker.run(
-                () -> productServiceClient.getProductList(productIdList),
+                () -> productServiceClient.getProductListMap(productIdList),
                 throwable -> new HashMap<Long, ProductThumbnailDto>()
         );
 
@@ -308,6 +308,7 @@ public class OrderServiceImpl implements OrderService {
             ProductThumbnailDto product = productList.get(productId);
 
             response.add(OrderInformationDto.builder()
+                    .orderId(orderList.get(i).getId())
                     .name(product.getName() + " 외 " + orderProductDtoListDsl.get(i).getCount() + "건")
                     .orderStatus(orderList.get(i).getOrderStatus())
                     .price(orderList.get(i).getTotalPrice())
@@ -333,7 +334,7 @@ public class OrderServiceImpl implements OrderService {
         log.info("productIdList : " + productIdList.toString());
         CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitbreaker");
         Map<Long, ProductThumbnailDto> productList = circuitBreaker.run(
-                () -> productServiceClient.getProductList(productIdList),
+                () -> productServiceClient.getProductListMap(productIdList),
                 throwable -> new HashMap<Long, ProductThumbnailDto>()
         );
 
@@ -379,10 +380,16 @@ public class OrderServiceImpl implements OrderService {
         //금주 시작 날짜
         if(flag.equals("start")) {
             cal.add(Calendar.DATE, 2 - cal.get(Calendar.DAY_OF_WEEK));
+            cal.set(Calendar.HOUR_OF_DAY, 0);
+            cal.set(Calendar.MINUTE, 0);
+            cal.set(Calendar.SECOND, 0);
         }
         //금주 종료 날짜
         else if(flag.equals("end")){
             cal.add(Calendar.DATE, 8 - cal.get(Calendar.DAY_OF_WEEK));
+            cal.set(Calendar.HOUR_OF_DAY, 23);
+            cal.set(Calendar.MINUTE, 59);
+            cal.set(Calendar.SECOND, 59);
         }
         TimeZone tz = cal.getTimeZone();
         ZoneId zoneId = tz.toZoneId();
