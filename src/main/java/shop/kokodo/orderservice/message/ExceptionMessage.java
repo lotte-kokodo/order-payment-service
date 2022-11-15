@@ -6,7 +6,7 @@ public class ExceptionMessage {
     public static final String CART_NOT_FOUNDED = "유효하지 않은 장바구니 아이디";
     public static final String CART_QTY_CANNOT_BE_NEGATIVE = "유효하지 않은 상품 수량 (수량 < 0)";
     public static final String CANNOT_BE_ATTEMPTED_COMMUNICATION = "잠시 후 다시 시도해주시거나, 관리자에게 문의하세요 🥹";
-
+    public static final String NOT_REGISTERED_MEMBER_INFO = "배송정보 미등록";
     /* 상품 재고 부족 메시지 생성 */
     // msg: 상품 재고 부족: product_id '상품아이디'
     public static String createProductOutOfStockMsg(Integer availableQty) {

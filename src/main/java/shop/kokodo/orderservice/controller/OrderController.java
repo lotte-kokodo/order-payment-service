@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import shop.kokodo.orderservice.aop.MemberInfoCheck;
 import shop.kokodo.orderservice.dto.request.CartOrderDto;
 import shop.kokodo.orderservice.dto.request.SingleProductOrderDto;
 import shop.kokodo.orderservice.controller.response.Response;
@@ -34,6 +35,7 @@ public class OrderController {
     }
 
     /* 단일 상품 주문 API */
+    @MemberInfoCheck
     @PostMapping("/singleProduct")
     public Response orderSingleProduct(@Valid @RequestBody SingleProductOrderDto req) {
         Order order = orderService.orderSingleProduct(req);
@@ -41,6 +43,7 @@ public class OrderController {
     }
 
     /* 장바구니 주문 API */
+    @MemberInfoCheck
     @PostMapping("/cart")
     public Response orderCartProduct(@Valid @RequestBody CartOrderDto req) {
         Order order = orderService.orderCartProducts(req);
