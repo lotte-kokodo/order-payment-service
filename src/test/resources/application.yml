@@ -1,3 +1,15 @@
+server:
+  port: 0 # Eureka 로부터 자동 포트 부여
+
+eureka:
+  instance:
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:9001/eureka
+
 spring:
   application:
     name: order-service
@@ -10,3 +22,4 @@ spring:
 
 kafka:
   address: 127.0.0.1:9092
+
