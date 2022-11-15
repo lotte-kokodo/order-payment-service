@@ -24,6 +24,6 @@ public interface ProductServiceClient {
     @GetMapping("/stock/{productId}")
     FeignResponse.ProductStock getProductStock(@PathVariable Long productId);
 
-    @GetMapping("/list")
-    public Map<Long, FeignResponse.Product> getProductList(@RequestParam List<Long> productIdList);
+    @GetMapping("/list/map")
+    public Map<Long, FeignResponse.Product> getProductListMap(@RequestParam List<Long> productIdList);
 }

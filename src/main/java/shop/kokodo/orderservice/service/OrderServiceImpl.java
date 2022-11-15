@@ -4,25 +4,27 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.querydsl.core.QueryResults;
+import com.querydsl.core.Tuple;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestParam;
 import shop.kokodo.orderservice.dto.request.CartOrderRequest;
 import shop.kokodo.orderservice.dto.request.SingleProductOrderRequest;
-import shop.kokodo.orderservice.dto.response.data.OrderResponse.GetOrderProduct;
 import shop.kokodo.orderservice.dto.response.dto.OrderDetailInformationDto;
 import shop.kokodo.orderservice.dto.response.dto.OrderInformationDto;
+import shop.kokodo.orderservice.dto.response.dto.OrderProductDslDto;
 import shop.kokodo.orderservice.dto.response.dto.OrderProductDto;
 import shop.kokodo.orderservice.entity.Cart;
 import shop.kokodo.orderservice.entity.Order;
 import shop.kokodo.orderservice.entity.OrderProduct;
+import shop.kokodo.orderservice.entity.QOrderProduct;
 import shop.kokodo.orderservice.entity.enums.status.CartStatus;
 import shop.kokodo.orderservice.feign.client.MemberServiceClient;
 import shop.kokodo.orderservice.feign.client.ProductServiceClient;
@@ -31,7 +33,6 @@ import shop.kokodo.orderservice.feign.response.FeignResponse;
 import shop.kokodo.orderservice.feign.response.FeignResponse.MemberDeliveryInfo;
 import shop.kokodo.orderservice.feign.response.FeignResponse.RateCoupon;
 import shop.kokodo.orderservice.feign.response.FeignResponse.RateDiscountPolicy;
-import shop.kokodo.orderservice.feign.response.ProductDto;
 import shop.kokodo.orderservice.messagequeue.KafkaProducer;
 import shop.kokodo.orderservice.repository.interfaces.CartRepository;
 import shop.kokodo.orderservice.repository.interfaces.OrderProductRepository;
@@ -62,6 +63,10 @@ public class OrderServiceImpl implements OrderService {
     //Kafka
     private final KafkaProducer kafkaProducer;
 
+    //queryDSL
+    private final JPAQueryFactory jpaQueryFactory;
+    private static QOrderProduct orderProduct = QOrderProduct.orderProduct;
+
     @Autowired
     public OrderServiceImpl(
             OrderRepository orderRepository,
@@ -72,6 +77,7 @@ public class OrderServiceImpl implements OrderService {
             PromotionServiceClient promotionServiceClient,
             ProductPriceCalculator productPriceCalculator,
             CircuitBreakerFactory circuitBreakerFactory,
+            JPAQueryFactory jpaQueryFactory,
             KafkaProducer kafkaProducer) {
 
         this.orderRepository = orderRepository;
@@ -82,6 +88,7 @@ public class OrderServiceImpl implements OrderService {
         this.memberServiceClient = memberServiceClient;
         this.promotionServiceClient = promotionServiceClient;
         this.circuitBreakerFactory = circuitBreakerFactory;
+        this.jpaQueryFactory = jpaQueryFactory;
         this.kafkaProducer = kafkaProducer;
     }
 
@@ -194,12 +201,11 @@ public class OrderServiceImpl implements OrderService {
     public List<OrderInformationDto> getOrderList(Long memberId) {
         List<Order> orderList = orderRepository.findAllByMemberId(memberId);
 
-        List<OrderProductDto> orderProductDtoList = orderProductRepository.findAllByOrderIdIn(
-                orderList.stream()
-                        .map(Order::getId)
-                        .collect(Collectors.toList()
-                        )
-        );
+        List<Long> orderIdList = orderList.stream()
+                .map(Order::getId)
+                .collect(Collectors.toList());
+
+        List<OrderProductDto> orderProductDtoList = orderProductRepository.findAllByOrderIdIn(orderIdList);
 
         List<Long> productIdList = orderProductDtoList.stream()
                 .map(OrderProductDto::getProductId)
@@ -207,7 +213,7 @@ public class OrderServiceImpl implements OrderService {
 
         CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitbreaker");
         Map<Long, FeignResponse.Product> productList = circuitBreaker.run(
-                () -> productServiceClient.getProductList(productIdList),
+                () -> productServiceClient.getProductListMap(productIdList),
                 throwable -> new HashMap<Long, FeignResponse.Product>()
         );
 
@@ -232,6 +238,47 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional(readOnly = false)
     @Override
+    public List<OrderInformationDto> getOrderListDsl(Long memberId) {
+        List<Order> orderList = orderRepository.findAllByMemberId(memberId);
+
+        List<Long> orderIdList = orderList.stream()
+                .map(Order::getId)
+                .collect(Collectors.toList());
+
+        List<OrderProductDslDto> orderProductDtoListDsl = findAllByOrderIdInDsl(orderIdList);
+
+        List<Long> productIdList = orderProductDtoListDsl.stream()
+                .map(OrderProductDslDto::getProductId)
+                .collect(Collectors.toList());
+
+        CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitbreaker");
+        Map<Long, FeignResponse.Product> productList = circuitBreaker.run(
+                () -> productServiceClient.getProductListMap(productIdList),
+                throwable -> new HashMap<Long, FeignResponse.Product>()
+        );
+
+        List<OrderInformationDto> response = new ArrayList<>();
+        for (int i=0;i<orderProductDtoListDsl.size();i++) {
+            Long productId = productIdList.get(i);
+            FeignResponse.Product product = productList.get(productId);
+
+            response.add(OrderInformationDto.builder()
+                    .orderId(orderList.get(i).getId())
+                    .name(product.getName() + " 외 " + orderProductDtoListDsl.get(i).getCount() + "건")
+                    .orderStatus(orderList.get(i).getOrderStatus())
+                    .price(orderList.get(i).getTotalPrice())
+                    .thumbnail(product.getThumbnail())
+                    .orderDate(orderList.get(i).getOrderDate())
+                    .build()
+            );
+        }
+        log.info("response : " + response);
+        return response;
+    }
+
+
+    @Transactional(readOnly = false)
+    @Override
     public List<OrderDetailInformationDto> getOrderDetailList(Long memberId, Long orderId) {
         List<OrderProduct> orderProductList = orderProductRepository.findAllByIdAndMemberId(memberId, orderId);
         log.info("orderProductList : " + orderProductList.toString());
@@ -242,7 +289,7 @@ public class OrderServiceImpl implements OrderService {
         log.info("productIdList : " + productIdList.toString());
         CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitbreaker");
         Map<Long, FeignResponse.Product> productList = circuitBreaker.run(
-                () -> productServiceClient.getProductList(productIdList),
+                () -> productServiceClient.getProductListMap(productIdList),
                 throwable -> new HashMap<Long, FeignResponse.Product>()
         );
 
@@ -255,6 +302,7 @@ public class OrderServiceImpl implements OrderService {
                     .price(orderProductList.get(i).getUnitPrice())
                     .qty(orderProductList.get(i).getQty())
                     .thumbnail(productList.get(productIdList.get(i)).getThumbnail())
+                    .orderStatus(orderProductList.get(i).getOrder().getOrderStatus())
                     .build();
             orderDetailInformationDtoList.add(orderDetailInformationDto);
         }
@@ -296,5 +344,25 @@ public class OrderServiceImpl implements OrderService {
         ZoneId zoneId = tz.toZoneId();
 
         return LocalDateTime.ofInstant(cal.toInstant(), zoneId);
+    }
+
+    private List<OrderProductDslDto> findAllByOrderIdInDsl(List<Long> orderIdList) {
+        orderProduct = QOrderProduct.orderProduct;
+        QueryResults<Tuple> results = jpaQueryFactory.select(orderProduct.productId, orderProduct.count(), orderProduct.order.id)
+                .from(orderProduct)
+                .where(orderProduct.order.id.in(orderIdList))
+                .groupBy(orderProduct.order.id)
+                .fetchResults();
+
+        List<OrderProductDslDto> result = new ArrayList<>();
+        results.getResults().stream().forEach(tuple -> result.add(
+                OrderProductDslDto.builder()
+                        .productId(tuple.get(0, Long.class))
+                        .count(tuple.get(1, Long.class))
+                        .orderId(tuple.get(2, Long.class))
+                        .build()
+                )
+        );
+        return result;
     }
 }
