@@ -16,5 +16,4 @@ public class ProductThumbnailDto {
     private String name;
     private String displayName;
     private String thumbnail;
-
 }

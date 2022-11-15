@@ -19,6 +19,7 @@ import shop.kokodo.orderservice.dto.request.CartOrderDto;
 import shop.kokodo.orderservice.dto.request.SingleProductOrderDto;
 import shop.kokodo.orderservice.dto.response.OrderDetailInformationDto;
 import shop.kokodo.orderservice.dto.response.OrderInformationDto;
+import shop.kokodo.orderservice.dto.response.OrderProductDslDto;
 import shop.kokodo.orderservice.dto.response.OrderProductThumbnailDto;
 import shop.kokodo.orderservice.entity.Cart;
 import shop.kokodo.orderservice.entity.Order;
@@ -296,18 +297,17 @@ public class OrderServiceImpl implements OrderService {
                 .collect(Collectors.toList());
 
         CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitbreaker");
-        Map<Long, FeignResponse.Product> productList = circuitBreaker.run(
+        Map<Long, ProductThumbnailDto> productList = circuitBreaker.run(
                 () -> productServiceClient.getProductListMap(productIdList),
-                throwable -> new HashMap<Long, FeignResponse.Product>()
+                throwable -> new HashMap<Long, ProductThumbnailDto>()
         );
 
         List<OrderInformationDto> response = new ArrayList<>();
         for (int i=0;i<orderProductDtoListDsl.size();i++) {
             Long productId = productIdList.get(i);
-            FeignResponse.Product product = productList.get(productId);
+            ProductThumbnailDto product = productList.get(productId);
 
             response.add(OrderInformationDto.builder()
-                    .orderId(orderList.get(i).getId())
                     .name(product.getName() + " 외 " + orderProductDtoListDsl.get(i).getCount() + "건")
                     .orderStatus(orderList.get(i).getOrderStatus())
                     .price(orderList.get(i).getTotalPrice())
