@@ -16,9 +16,16 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create
-  batch:
-    jdbc:
-      initialize-schema: always
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+        storage_engine: innodb
+        format_sql: true
+        globally_quoted_identifiers: true
+
+  sql:
+    init:
+      mode: never
 
 kafka:
   address: 127.0.0.1:9092
