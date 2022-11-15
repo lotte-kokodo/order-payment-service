@@ -13,7 +13,7 @@ public interface PromotionServiceClient {
 
     // 비율할인정책
     // [key] 상품아이디 [value] 상품에 적용된 비율할인정책
-    @GetMapping("/feign/rate-discount/list")
+    @GetMapping("/rate-discount/feign/rate-discount/list")
     Map<Long, RateDiscountPolicyDto> getRateDiscountPolicy(@RequestParam("productIdList") List<Long> productIds);
 
     // 고정할인정책
