@@ -22,7 +22,7 @@ import javax.persistence.PersistenceContext;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import shop.kokodo.orderservice.dto.request.SingleProductOrderRequest;
+import shop.kokodo.orderservice.dto.request.SingleProductOrderDto;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.restdocs.restassured3.RestAssuredRestDocumentation.document;
@@ -99,14 +99,11 @@ class OrderControllerTest extends DocumentConfiguration {
         Long productId = 50L;
         Long sellerId = 1L;
         Integer qty = 3;
-        Map<Long, Long> productSellerMap = new HashMap<>() {{
-           put(50L, 1L);
-        }};
         Long rateCouponId = 3L;
         Long fixCouponId = 2L;
 
-        SingleProductOrderRequest reqBody = new SingleProductOrderRequest(memberId, productId,
-            sellerId, qty, productSellerMap, rateCouponId, fixCouponId);
+        SingleProductOrderDto reqBody = new SingleProductOrderDto(memberId, productId,
+            sellerId, qty, rateCouponId, fixCouponId);
 
         // when
         final ExtractableResponse<Response> resp = RestAssured

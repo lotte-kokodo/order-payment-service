@@ -4,7 +4,7 @@ import java.util.Arrays;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import shop.kokodo.orderservice.dto.response.Response;
+import shop.kokodo.orderservice.controller.response.Response;
 
 @RestControllerAdvice
 @Slf4j

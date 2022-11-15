@@ -16,12 +16,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import shop.kokodo.orderservice.dto.request.MemberIdDto;
-import shop.kokodo.orderservice.dto.response.dto.CartResponse;
+import shop.kokodo.orderservice.dto.response.CartDto;
 import shop.kokodo.orderservice.entity.Cart;
 import shop.kokodo.orderservice.entity.enums.status.CartStatus;
 import shop.kokodo.orderservice.feign.client.ProductServiceClient;
-import shop.kokodo.orderservice.feign.response.ProductDto;
+import shop.kokodo.orderservice.feign.response.CartProductDto;
 import shop.kokodo.orderservice.repository.interfaces.CartRepository;
 
 @Slf4j
@@ -39,7 +38,6 @@ class CartServiceImplTest {
     ProductServiceClient productServiceClient;
 
     static Long memberId;
-    static MemberIdDto memberIdDto = new MemberIdDto(memberId);
     static List<Long> productIds = List.of(1L, 2L, 3L, 4L, 5L);
     static List<Long> cartIds = List.of(1L, 2L, 3L, 4L, 5L);
 
@@ -47,11 +45,11 @@ class CartServiceImplTest {
     static Long sellerA = 1L;
     static Long sellerB = 2L;
 
-    static ProductDto productA;
-    static ProductDto productB;
-    static ProductDto productC;
-    static ProductDto productD;
-    static ProductDto productE;
+    static CartProductDto productA;
+    static CartProductDto productB;
+    static CartProductDto productC;
+    static CartProductDto productD;
+    static CartProductDto productE;
 
     static Cart cartA;
     static Cart cartB;
@@ -60,16 +58,16 @@ class CartServiceImplTest {
     static Cart cartE;
 
     static List<Cart> carts = new ArrayList<>();
-    static Map<Long, ProductDto> productMap = new HashMap<>();
+    static Map<Long, CartProductDto> productMap = new HashMap<>();
 
     @BeforeAll
     static void createTestData() {
 
-        productA = ProductDto.create(1L, "https://file.rankingdak.com/image/RANK/PRODUCT/PRD001/20220928/IMG1664MFn346838529_330_330.jpg", "잇츠나우 실온보관 한입 소스 닭가슴살 갈비 100g", 24900, sellerA);
-        productB = ProductDto.create(2L, "https://file.rankingdak.com/image/RANK/PRODUCT/PRD001/20220826/IMG1661ECG509930627_330_330.jpg", "잇메이트 프로틴 어묵 스테이크 혼합 100g", 21900, sellerA);
-        productC = ProductDto.create(3L, "https://file.rankingdak.com/image/RANK/PRODUCT/PRD001/20220831/IMG1661Kye924587032_330_330.jpg", "네이처엠 현미밥 150g", 18900, sellerB);
-        productD = ProductDto.create(4L, "https://file.rankingdak.com/image/RANK/PRODUCT/PRD001/20220831/IMG1661Nzr924640928_330_330.jpg", "네이처엠 현미밥 200g", 20900, sellerB);
-        productE = ProductDto.create(5L, "https://file.rankingdak.com/image/RANK/PRODUCT/PRD001/20220817/IMG1660Feq719859887_330_330.jpg", "신선애 IQF 생 닭안심살 1kg", 7500, sellerB);
+        productA = CartProductDto.create(1L, "https://file.rankingdak.com/image/RANK/PRODUCT/PRD001/20220928/IMG1664MFn346838529_330_330.jpg", "잇츠나우 실온보관 한입 소스 닭가슴살 갈비 100g", 24900, sellerA);
+        productB = CartProductDto.create(2L, "https://file.rankingdak.com/image/RANK/PRODUCT/PRD001/20220826/IMG1661ECG509930627_330_330.jpg", "잇메이트 프로틴 어묵 스테이크 혼합 100g", 21900, sellerA);
+        productC = CartProductDto.create(3L, "https://file.rankingdak.com/image/RANK/PRODUCT/PRD001/20220831/IMG1661Kye924587032_330_330.jpg", "네이처엠 현미밥 150g", 18900, sellerB);
+        productD = CartProductDto.create(4L, "https://file.rankingdak.com/image/RANK/PRODUCT/PRD001/20220831/IMG1661Nzr924640928_330_330.jpg", "네이처엠 현미밥 200g", 20900, sellerB);
+        productE = CartProductDto.create(5L, "https://file.rankingdak.com/image/RANK/PRODUCT/PRD001/20220817/IMG1660Feq719859887_330_330.jpg", "신선애 IQF 생 닭안심살 1kg", 7500, sellerB);
 
         cartA = Cart.create(1L, memberId, 1L, 1, CartStatus.IN_CART);
         cartB = Cart.create(2L, memberId, 2L, 2, CartStatus.IN_CART);
@@ -104,7 +102,7 @@ class CartServiceImplTest {
             when(productServiceClient.getOrderProducts(productIds)).thenReturn(productMap);
 
             // [key] 판매자아이디 [value] 판매자상품리스트
-            Map<Long, List<CartResponse>> sellerCartListMap = cartService.getCarts(memberId);
+            Map<Long, List<CartDto>> sellerCartListMap = cartService.getCarts(memberId);
 
             // then
             Assertions.assertEquals(sellerCartListMap.get(sellerA).size(), 2);
