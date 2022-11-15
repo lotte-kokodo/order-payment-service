@@ -2,7 +2,7 @@ package shop.kokodo.orderservice.feign.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.time.LocalDateTime;
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -21,4 +21,8 @@ public class RateCouponDto {
     private Long productId;
     private Long sellerId;
 
+    public RateCouponDto(Long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
 }

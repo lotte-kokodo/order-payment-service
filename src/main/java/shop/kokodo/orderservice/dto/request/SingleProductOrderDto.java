@@ -28,7 +28,7 @@ public class SingleProductOrderDto {
     private Long fixCouponId;
 
     public SingleProductOrderDto(Long memberId, Long productId, Long sellerId,
-        Integer qty, Map<Long, Long> productSellerMap, Long rateCouponId, Long fixCouponId) {
+        Integer qty, Long rateCouponId, Long fixCouponId) {
         this.memberId = memberId;
         this.productId = productId;
         this.sellerId = sellerId;

@@ -1,9 +1,9 @@
-package shop.kokodo.orderservice.messagequeue;
+package shop.kokodo.orderservice.kafka;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
-import shop.kokodo.orderservice.messagequeue.handler.OrderStatusHandler;
+import shop.kokodo.orderservice.kafka.handler.OrderStatusHandler;
 
 @Service
 @Slf4j

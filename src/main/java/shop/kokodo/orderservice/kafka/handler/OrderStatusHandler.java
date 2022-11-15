@@ -1,4 +1,4 @@
-package shop.kokodo.orderservice.messagequeue.handler;
+package shop.kokodo.orderservice.kafka.handler;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.Optional;
@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import shop.kokodo.orderservice.entity.Order;
 import shop.kokodo.orderservice.entity.enums.status.OrderStatus;
-import shop.kokodo.orderservice.messagequeue.KafkaMessageParser;
+import shop.kokodo.orderservice.kafka.KafkaMessageParser;
 import shop.kokodo.orderservice.repository.interfaces.OrderRepository;
 
 /**

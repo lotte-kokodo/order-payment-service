@@ -38,7 +38,6 @@ class CartServiceImplTest {
     ProductServiceClient productServiceClient;
 
     static Long memberId;
-    static MemberIdDto memberIdDto = new MemberIdDto(memberId);
     static List<Long> productIds = List.of(1L, 2L, 3L, 4L, 5L);
     static List<Long> cartIds = List.of(1L, 2L, 3L, 4L, 5L);
 

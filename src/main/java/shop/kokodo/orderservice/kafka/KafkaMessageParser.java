@@ -1,4 +1,4 @@
-package shop.kokodo.orderservice.messagequeue;
+package shop.kokodo.orderservice.kafka;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;

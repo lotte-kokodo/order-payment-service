@@ -29,7 +29,8 @@ import shop.kokodo.orderservice.feign.response.OrderProductDto;
 import shop.kokodo.orderservice.feign.response.ProductThumbnailDto;
 import shop.kokodo.orderservice.feign.response.RateCouponDto;
 import shop.kokodo.orderservice.feign.response.RateDiscountPolicyDto;
-import shop.kokodo.orderservice.messagequeue.KafkaProducer;
+import shop.kokodo.orderservice.kafka.KafkaProducer;
+import shop.kokodo.orderservice.kafka.dto.CouponNameDto;
 import shop.kokodo.orderservice.repository.interfaces.CartRepository;
 import shop.kokodo.orderservice.repository.interfaces.OrderProductRepository;
 import shop.kokodo.orderservice.repository.interfaces.OrderRepository;
@@ -100,9 +101,10 @@ public class OrderServiceImpl implements OrderService {
         // [promotion-service feign]
         // 비율할인정책, 고정할인정책, 비율쿠폰, 고정쿠폰 조회
         Long sellerId = dto.getSellerId();
-        Map<Long, RateDiscountPolicyDto> rateDiscountProductMap = promotionServiceClient.getRateDiscountPolicy(List.of(productId));
+        Map<Long, RateDiscountPolicyDto> rateDiscountPolicyMap = promotionServiceClient.getRateDiscountPolicy(List.of(productId));
         Map<Long, Boolean> fixDiscountPolicySellerMap = promotionServiceClient.getFixDiscountPolicyStatusForFeign(List.of(productId), List.of(sellerId));
 
+        // TODO: ID 가 NULL 일 경우 처리
         Long rateCouponId = dto.getRateCouponId();
         Long fixCouponId = dto.getFixCouponId();
         Map<Long, RateCouponDto> rateCouponMap = (rateCouponId != null) ?  promotionServiceClient.findRateCouponByCouponIdList(List.of(rateCouponId)) : new LinkedHashMap<>();
@@ -111,7 +113,7 @@ public class OrderServiceImpl implements OrderService {
         // 주문총액
         // 비율할인정책, 비율할인쿠폰 적용
         Map<Long, Long> productSellerMap = new HashMap<>(){{ put(productId, sellerId); }};
-        Integer totalPrice = productPriceCalculator.calcTotalPrice(orderProducts, productSellerMap, rateDiscountProductMap, fixDiscountPolicySellerMap, rateCouponMap, fixCouponSellerIds);
+        Integer totalPrice = productPriceCalculator.calcTotalPrice(orderProducts, productSellerMap, rateDiscountPolicyMap, fixDiscountPolicySellerMap, rateCouponMap, fixCouponSellerIds);
 
         // 주문 생성
         Order order = Order.createOrder(memberId, orderMemberDto.getName(), orderMemberDto.getAddress(), totalPrice, orderProducts);
@@ -121,8 +123,11 @@ public class OrderServiceImpl implements OrderService {
             put(productId, qty);
         }});
 
-        // TODO: 주문 완료 후 할인쿠폰 사용 처리 Kafka
-//        kafkaProducer.send("promotion-coupon-status", List.of(couponId));
+        // 쿠폰 상태 변경
+        CouponNameDto couponNameDto = getValidCouponNameDto(memberId, rateCouponId, fixCouponId, rateCouponMap);
+        if (couponNameDto != null) {
+            kafkaProducer.send("promotion-coupon-status", couponNameDto);
+        }
 
         return order;
     }
@@ -155,13 +160,13 @@ public class OrderServiceImpl implements OrderService {
 
         // [promotion-service feign]
         // 비율할인정책, 고정할인정책, 비율쿠폰, 고정쿠폰 조회
-        Map<Long, RateDiscountPolicyDto> rateDiscountProductMap = promotionServiceClient.getRateDiscountPolicy(productIds);
+        Map<Long, RateDiscountPolicyDto> rateDiscountPolicyMap = promotionServiceClient.getRateDiscountPolicy(productIds);
         Map<Long, Boolean> fixDiscountPolicySellerMap = promotionServiceClient.getFixDiscountPolicyStatusForFeign(productIds, sellerIds);
         Map<Long, RateCouponDto> rateCouponMap = promotionServiceClient.findRateCouponByCouponIdList(rateCouponIds);
         List<Long> fixCouponSellerIds = promotionServiceClient.findFixCouponByCouponIdList(fixCouponIds);
 
         // 주문 총 가격 계산
-        Integer totalPrice = productPriceCalculator.calcTotalPrice(orderProducts, productSellerMap, rateDiscountProductMap, fixDiscountPolicySellerMap, rateCouponMap, fixCouponSellerIds);
+        Integer totalPrice = productPriceCalculator.calcTotalPrice(orderProducts, productSellerMap, rateDiscountPolicyMap, fixDiscountPolicySellerMap, rateCouponMap, fixCouponSellerIds);
 
         // 사용자 이름, 주소
         Long memberId = dto.getMemberId();
@@ -179,10 +184,49 @@ public class OrderServiceImpl implements OrderService {
                 .collect(Collectors.toMap(Cart::getProductId, Cart::getQty));
         kafkaProducer.send("product-decrease-stock", productIdQtyMap);
 
-        // TODO: 주문 완료 후 할인쿠폰 사용 처리 Kafka
-//        kafkaProducer.send("promotion-coupon-status", couponIds);
-
+        // 쿠폰 상태 변경
+        CouponNameDto couponNameDto = getValidCouponNameDto(memberId, rateCouponIds, fixCouponIds, rateCouponMap);
+        if (couponNameDto != null) {
+            kafkaProducer.send("promotion-coupon-status", couponNameDto);
+        }
         return order;
+    }
+
+    // 쿠폰 아이디 NULL 체크
+    // 쿠폰 아이디 리스트 NULL 체크
+    public CouponNameDto getValidCouponNameDto(Long memberId,
+        Object rateCouponId, Object fixCouponId,
+        Map<Long, RateCouponDto> rateCouponMap) {
+
+        // 주문 시 쿠폰을 적용하지 않았다면,
+        if (rateCouponId == null && fixCouponId == null) {
+            return null;
+        }
+
+        List<String> rateCouponNames = rateCouponMap.values().stream()
+            .map(RateCouponDto::getName).collect(Collectors.toList());
+
+        // 쿠폰 아이디 리스트라면,
+        if (rateCouponId instanceof List) {
+            List<Long> rateCouponIds = (List<Long>) rateCouponId;
+            List<Long> fixCouponIds = (List<Long>) fixCouponId;
+            // 쿠폰 아이디 리스트가 모두 비었다면,
+            if (rateCouponIds.isEmpty() && fixCouponIds.isEmpty()) {
+                return null;
+            }
+
+            // 비율-고정 쿠폰 중 하나의 쿠폰이라도 선택됐다면,
+            return new CouponNameDto(memberId, fixCouponIds, rateCouponNames);
+        }
+
+        // 비율쿠폰만 적용됐다면,
+        if (rateCouponId != null) {
+            return new CouponNameDto(memberId, new ArrayList<>(), rateCouponNames);
+        }
+        else {
+            return new CouponNameDto(memberId, List.of((Long) fixCouponId), rateCouponNames);
+        }
+
     }
 
     @Transactional(readOnly = false)

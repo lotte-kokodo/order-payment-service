@@ -95,14 +95,11 @@ class OrderControllerTest extends DocumentConfiguration {
         Long productId = 50L;
         Long sellerId = 1L;
         Integer qty = 3;
-        Map<Long, Long> productSellerMap = new HashMap<>() {{
-           put(50L, 1L);
-        }};
         Long rateCouponId = 3L;
         Long fixCouponId = 2L;
 
         SingleProductOrderDto reqBody = new SingleProductOrderDto(memberId, productId,
-            sellerId, qty, productSellerMap, rateCouponId, fixCouponId);
+            sellerId, qty, rateCouponId, fixCouponId);
 
         // when
         final ExtractableResponse<Response> resp = RestAssured

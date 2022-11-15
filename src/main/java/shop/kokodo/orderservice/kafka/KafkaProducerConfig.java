@@ -1,4 +1,4 @@
-package shop.kokodo.orderservice.messagequeue;
+package shop.kokodo.orderservice.kafka;
 
 import java.util.HashMap;
 import java.util.Map;

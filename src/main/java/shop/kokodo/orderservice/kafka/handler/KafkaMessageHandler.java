@@ -1,4 +1,4 @@
-package shop.kokodo.orderservice.messagequeue.handler;
+package shop.kokodo.orderservice.kafka.handler;
 
 public interface KafkaMessageHandler {
 
