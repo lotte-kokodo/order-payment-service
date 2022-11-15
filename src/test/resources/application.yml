@@ -7,3 +7,6 @@ spring:
   batch:
     jdbc:
       initialize-schema: always
+
+kafka:
+  address: 127.0.0.1:9092
