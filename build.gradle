@@ -20,6 +20,7 @@ repositories {
 
 ext {
     set('springCloudVersion', "2021.0.4")
+    queryDslVersion = "5.0.0"
 }
 
 dependencies {
@@ -69,6 +70,13 @@ dependencies {
 
     // restAssured
     testImplementation 'org.springframework.restdocs:spring-restdocs-restassured'
+
+    // QueryDsl
+    implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
+    annotationProcessor(
+            "javax.persistence:javax.persistence-api",
+            "javax.annotation:javax.annotation-api",
+            "com.querydsl:querydsl-apt:${queryDslVersion}:jpa")
 }
 
 dependencyManagement {
@@ -79,4 +87,13 @@ dependencyManagement {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+// QueryDSL
+sourceSets {
+    main {
+        java {
+            srcDirs = ["$projectDir/src/main/java", "$projectDir/build/generated"]
+        }
+    }
 }
