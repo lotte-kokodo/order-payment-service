@@ -56,4 +56,7 @@ public interface ProductServiceClient {
      */
     @GetMapping("/seller/{sellerId}/productId")
     List<Long> getSellerProductIds(@PathVariable Long sellerId);
+
+    @GetMapping("/list/map")
+    Map<Long, ProductThumbnailDto> getProductListMap(@RequestParam List<Long> productIdList);
 }

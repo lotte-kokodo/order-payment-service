@@ -1,0 +1,41 @@
+= Order-Rest-Controller-Api
+:toc: left
+:toclevels: 4
+ifndef::snippets[]
+:snippets: ./build/generated-snippets
+
+endif::[]
+
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs // 문서에 표기되는 코드들의 하이라이팅을 highlightjs를 사용
+:toc: left // toc (Table Of Contents)를 문서의 좌측에 두기
+:toclevels: 2
+:sectlinks:
+
+== orderList
+주문 조회
+include::{snippets}/get-order-list/curl-request.adoc[]
+include::{snippets}/get-order-list/http-request.adoc[]
+include::{snippets}/get-order-list/http-response.adoc[]
+include::{snippets}/get-order-list/httpie-request.adoc[]
+include::{snippets}/get-order-list/request-body.adoc[]
+include::{snippets}/get-order-list/response-body.adoc[]
+
+== orderDetailList
+주문 상세 조회
+include::{snippets}/get-order-detail-list/curl-request.adoc[]
+include::{snippets}/get-order-detail-list/http-request.adoc[]
+include::{snippets}/get-order-detail-list/http-response.adoc[]
+include::{snippets}/get-order-detail-list/httpie-request.adoc[]
+include::{snippets}/get-order-detail-list/request-body.adoc[]
+include::{snippets}/get-order-detail-list/response-body.adoc[]
+
+== findByProductId
+주간 주문상품 조회
+include::{snippets}/get-find-by-product-id/curl-request.adoc[]
+include::{snippets}/get-find-by-product-id/http-request.adoc[]
+include::{snippets}/get-find-by-product-id/http-response.adoc[]
+include::{snippets}/get-find-by-product-id/httpie-request.adoc[]
+include::{snippets}/get-find-by-product-id/request-body.adoc[]
+include::{snippets}/get-find-by-product-id/response-body.adoc[]

@@ -51,13 +51,24 @@ public class OrderController {
     }
 
     /**
-     * 주문 내역 조회
+     * nativeQuery 사용한 주문 내역 조회
      * @param memberId
      * @return 주문 정보 리스트
      */
     @GetMapping("/{memberId}")
     public Response orderList(@PathVariable("memberId") Long memberId) {
         List<OrderInformationDto> orderInformationDto = orderService.getOrderList(memberId);
+        return Response.success(orderInformationDto);
+    }
+
+    /**
+     * queryDsl 사용한 주문 내역 조회
+     * @param memberId
+     * @return 주문 정보 리스트
+     */
+    @GetMapping("/{memberId}/querydsl")
+    public Response orderListDsl(@PathVariable("memberId") Long memberId) {
+        List<OrderInformationDto> orderInformationDto = orderService.getOrderListDsl(memberId);
         return Response.success(orderInformationDto);
     }
 

@@ -6,6 +6,9 @@ import java.util.*;
 
 import java.util.stream.Collectors;
 
+import com.querydsl.core.QueryResults;
+import com.querydsl.core.Tuple;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
@@ -16,10 +19,12 @@ import shop.kokodo.orderservice.dto.request.CartOrderDto;
 import shop.kokodo.orderservice.dto.request.SingleProductOrderDto;
 import shop.kokodo.orderservice.dto.response.OrderDetailInformationDto;
 import shop.kokodo.orderservice.dto.response.OrderInformationDto;
+import shop.kokodo.orderservice.dto.response.OrderProductDslDto;
 import shop.kokodo.orderservice.dto.response.OrderProductThumbnailDto;
 import shop.kokodo.orderservice.entity.Cart;
 import shop.kokodo.orderservice.entity.Order;
 import shop.kokodo.orderservice.entity.OrderProduct;
+import shop.kokodo.orderservice.entity.QOrderProduct;
 import shop.kokodo.orderservice.entity.enums.status.CartStatus;
 import shop.kokodo.orderservice.feign.client.MemberServiceClient;
 import shop.kokodo.orderservice.feign.client.ProductServiceClient;
@@ -60,6 +65,10 @@ public class OrderServiceImpl implements OrderService {
     //Kafka
     private final KafkaProducer kafkaProducer;
 
+    //queryDSL
+    private final JPAQueryFactory jpaQueryFactory;
+    private static QOrderProduct orderProduct = QOrderProduct.orderProduct;
+
     @Autowired
     public OrderServiceImpl(
             OrderRepository orderRepository,
@@ -70,6 +79,7 @@ public class OrderServiceImpl implements OrderService {
             PromotionServiceClient promotionServiceClient,
             ProductPriceCalculator productPriceCalculator,
             CircuitBreakerFactory circuitBreakerFactory,
+            JPAQueryFactory jpaQueryFactory,
             KafkaProducer kafkaProducer) {
 
         this.orderRepository = orderRepository;
@@ -80,6 +90,7 @@ public class OrderServiceImpl implements OrderService {
         this.memberServiceClient = memberServiceClient;
         this.promotionServiceClient = promotionServiceClient;
         this.circuitBreakerFactory = circuitBreakerFactory;
+        this.jpaQueryFactory = jpaQueryFactory;
         this.kafkaProducer = kafkaProducer;
     }
 
@@ -247,7 +258,7 @@ public class OrderServiceImpl implements OrderService {
 
         CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitbreaker");
         Map<Long, ProductThumbnailDto> productList = circuitBreaker.run(
-                () -> productServiceClient.getProductList(productIdList),
+                () -> productServiceClient.getProductListMap(productIdList),
                 throwable -> new HashMap<Long, ProductThumbnailDto>()
         );
 
@@ -272,6 +283,47 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional(readOnly = false)
     @Override
+    public List<OrderInformationDto> getOrderListDsl(Long memberId) {
+        List<Order> orderList = orderRepository.findAllByMemberId(memberId);
+
+        List<Long> orderIdList = orderList.stream()
+                .map(Order::getId)
+                .collect(Collectors.toList());
+
+        List<OrderProductDslDto> orderProductDtoListDsl = findAllByOrderIdInDsl(orderIdList);
+
+        List<Long> productIdList = orderProductDtoListDsl.stream()
+                .map(OrderProductDslDto::getProductId)
+                .collect(Collectors.toList());
+
+        CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitbreaker");
+        Map<Long, ProductThumbnailDto> productList = circuitBreaker.run(
+                () -> productServiceClient.getProductListMap(productIdList),
+                throwable -> new HashMap<Long, ProductThumbnailDto>()
+        );
+
+        List<OrderInformationDto> response = new ArrayList<>();
+        for (int i=0;i<orderProductDtoListDsl.size();i++) {
+            Long productId = productIdList.get(i);
+            ProductThumbnailDto product = productList.get(productId);
+
+            response.add(OrderInformationDto.builder()
+                    .orderId(orderList.get(i).getId())
+                    .name(product.getName() + " 외 " + orderProductDtoListDsl.get(i).getCount() + "건")
+                    .orderStatus(orderList.get(i).getOrderStatus())
+                    .price(orderList.get(i).getTotalPrice())
+                    .thumbnail(product.getThumbnail())
+                    .orderDate(orderList.get(i).getOrderDate())
+                    .build()
+            );
+        }
+        log.info("response : " + response);
+        return response;
+    }
+
+
+    @Transactional(readOnly = false)
+    @Override
     public List<OrderDetailInformationDto> getOrderDetailList(Long memberId, Long orderId) {
         List<OrderProduct> orderProductList = orderProductRepository.findAllByIdAndMemberId(memberId, orderId);
         log.info("orderProductList : " + orderProductList.toString());
@@ -282,7 +334,7 @@ public class OrderServiceImpl implements OrderService {
         log.info("productIdList : " + productIdList.toString());
         CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitbreaker");
         Map<Long, ProductThumbnailDto> productList = circuitBreaker.run(
-                () -> productServiceClient.getProductList(productIdList),
+                () -> productServiceClient.getProductListMap(productIdList),
                 throwable -> new HashMap<Long, ProductThumbnailDto>()
         );
 
@@ -303,6 +355,7 @@ public class OrderServiceImpl implements OrderService {
         return orderDetailInformationDtoList;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Map<Long, List<Integer>> getProductAllPrice(List<Long> productIdList) {
 
@@ -327,14 +380,40 @@ public class OrderServiceImpl implements OrderService {
         //금주 시작 날짜
         if(flag.equals("start")) {
             cal.add(Calendar.DATE, 2 - cal.get(Calendar.DAY_OF_WEEK));
+            cal.set(Calendar.HOUR_OF_DAY, 0);
+            cal.set(Calendar.MINUTE, 0);
+            cal.set(Calendar.SECOND, 0);
         }
         //금주 종료 날짜
         else if(flag.equals("end")){
             cal.add(Calendar.DATE, 8 - cal.get(Calendar.DAY_OF_WEEK));
+            cal.set(Calendar.HOUR_OF_DAY, 23);
+            cal.set(Calendar.MINUTE, 59);
+            cal.set(Calendar.SECOND, 59);
         }
         TimeZone tz = cal.getTimeZone();
         ZoneId zoneId = tz.toZoneId();
 
         return LocalDateTime.ofInstant(cal.toInstant(), zoneId);
+    }
+
+    private List<OrderProductDslDto> findAllByOrderIdInDsl(List<Long> orderIdList) {
+        orderProduct = QOrderProduct.orderProduct;
+        QueryResults<Tuple> results = jpaQueryFactory.select(orderProduct.productId, orderProduct.count(), orderProduct.order.id)
+                .from(orderProduct)
+                .where(orderProduct.order.id.in(orderIdList))
+                .groupBy(orderProduct.order.id)
+                .fetchResults();
+
+        List<OrderProductDslDto> result = new ArrayList<>();
+        results.getResults().stream().forEach(tuple -> result.add(
+                OrderProductDslDto.builder()
+                        .productId(tuple.get(0, Long.class))
+                        .count(tuple.get(1, Long.class))
+                        .orderId(tuple.get(2, Long.class))
+                        .build()
+                )
+        );
+        return result;
     }
 }
