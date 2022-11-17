@@ -15,6 +15,7 @@ import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StopWatch;
 import shop.kokodo.orderservice.dto.request.CartOrderDto;
 import shop.kokodo.orderservice.dto.request.SingleProductOrderDto;
 import shop.kokodo.orderservice.dto.response.OrderDetailInformationDto;
@@ -243,6 +244,8 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = false)
     @Override
     public List<OrderInformationDto> getOrderList(Long memberId) {
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
         List<Order> orderList = orderRepository.findAllByMemberId(memberId);
 
         List<OrderProductThumbnailDto> orderProductThumbnailDtoList = orderProductRepository.findAllByOrderIdIn(
@@ -266,24 +269,29 @@ public class OrderServiceImpl implements OrderService {
         for (int i=0;i< orderProductThumbnailDtoList.size();i++) {
             Long productId = productIdList.get(i);
             ProductThumbnailDto product = productList.get(productId);
-
-            response.add(OrderInformationDto.builder()
-                    .orderId(orderList.get(i).getId())
-                    .name(product.getName() + " 외 " + orderProductThumbnailDtoList.get(i).getCount() + "건")
-                    .orderStatus(orderList.get(i).getOrderStatus())
-                    .price(orderList.get(i).getTotalPrice())
-                    .thumbnail(product.getThumbnail())
-                    .orderDate(orderList.get(i).getOrderDate())
-                    .build()
-            );
+            if(product != null) {
+                response.add(OrderInformationDto.builder()
+                        .orderId(orderList.get(i).getId())
+                        .name(product.getName() + " 외 " + orderProductThumbnailDtoList.get(i).getCount() + "건")
+                        .orderStatus(orderList.get(i).getOrderStatus())
+                        .price(orderList.get(i).getTotalPrice())
+                        .thumbnail(product.getThumbnail())
+                        .orderDate(orderList.get(i).getOrderDate())
+                        .build()
+                );
+            }
         }
         log.info("response : " + response);
+        stopWatch.stop();
+        System.out.println(stopWatch.prettyPrint());
         return response;
     }
 
     @Transactional(readOnly = false)
     @Override
     public List<OrderInformationDto> getOrderListDsl(Long memberId) {
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
         List<Order> orderList = orderRepository.findAllByMemberId(memberId);
 
         List<Long> orderIdList = orderList.stream()
@@ -306,18 +314,21 @@ public class OrderServiceImpl implements OrderService {
         for (int i=0;i<orderProductDtoListDsl.size();i++) {
             Long productId = productIdList.get(i);
             ProductThumbnailDto product = productList.get(productId);
-
-            response.add(OrderInformationDto.builder()
-                    .orderId(orderList.get(i).getId())
-                    .name(product.getName() + " 외 " + orderProductDtoListDsl.get(i).getCount() + "건")
-                    .orderStatus(orderList.get(i).getOrderStatus())
-                    .price(orderList.get(i).getTotalPrice())
-                    .thumbnail(product.getThumbnail())
-                    .orderDate(orderList.get(i).getOrderDate())
-                    .build()
-            );
+            if(product != null) {
+                response.add(OrderInformationDto.builder()
+                        .orderId(orderList.get(i).getId())
+                        .name(product.getName() + " 외 " + orderProductDtoListDsl.get(i).getCount() + "건")
+                        .orderStatus(orderList.get(i).getOrderStatus())
+                        .price(orderList.get(i).getTotalPrice())
+                        .thumbnail(product.getThumbnail())
+                        .orderDate(orderList.get(i).getOrderDate())
+                        .build()
+                );
+            }
         }
         log.info("response : " + response);
+        stopWatch.stop();
+        System.out.println(stopWatch.prettyPrint());
         return response;
     }
 
