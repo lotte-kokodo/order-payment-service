@@ -267,10 +267,14 @@ public class OrderServiceImpl implements OrderService {
             Long productId = productIdList.get(i);
             ProductThumbnailDto product = productList.get(productId);
 
+            String name = "";
+            if(orderProductThumbnailDtoList.get(i).getCount() == 1) name = product.getName();
+            else name = product.getName() + " 외 " + orderProductThumbnailDtoList.get(i).getCount() + "건";
+
             if(product != null) {
                 response.add(OrderInformationDto.builder()
                         .orderId(orderList.get(i).getId())
-                        .name(product.getName() + " 외 " + orderProductThumbnailDtoList.get(i).getCount() + "건")
+                        .name(name)
                         .orderStatus(orderList.get(i).getOrderStatus())
                         .price(orderList.get(i).getTotalPrice())
                         .thumbnail(product.getThumbnail())
@@ -313,6 +317,11 @@ public class OrderServiceImpl implements OrderService {
         for (int i=0;i<orderProductDtoListDsl.size();i++) {
             Long productId = productIdList.get(i);
             ProductThumbnailDto product = productList.get(productId);
+
+            String name = "";
+            if(orderProductDtoListDsl.get(i).getCount() == 1) name = product.getName();
+            else name = product.getName() + " 외 " + orderProductDtoListDsl.get(i).getCount() + "건";
+
             if(product != null) {
                 response.add(OrderInformationDto.builder()
                         .orderId(orderList.get(i).getId())
