@@ -12,6 +12,7 @@ import shop.kokodo.orderservice.dto.request.SingleProductOrderDto;
 import shop.kokodo.orderservice.controller.response.Response;
 import shop.kokodo.orderservice.dto.response.OrderDetailInformationDto;
 import shop.kokodo.orderservice.dto.response.OrderInformationDto;
+import shop.kokodo.orderservice.dto.response.PagingOrderInformationDto;
 import shop.kokodo.orderservice.entity.Order;
 import shop.kokodo.orderservice.message.MessageFormat;
 import shop.kokodo.orderservice.service.interfaces.OrderService;
@@ -50,8 +51,8 @@ public class OrderController {
      * @return 주문 정보 리스트
      */
     @GetMapping("/")
-    public Response orderList(@RequestHeader Long memberId) {
-        List<OrderInformationDto> orderInformationDto = orderService.getOrderList(memberId);
+    public Response orderList(@RequestHeader Long memberId, @RequestParam int page) {
+        PagingOrderInformationDto orderInformationDto = orderService.getOrderList(memberId, page - 1);
         return Response.success(orderInformationDto);
     }
 
@@ -61,8 +62,8 @@ public class OrderController {
      * @return 주문 정보 리스트
      */
     @GetMapping("/querydsl")
-    public Response orderListDsl(@RequestHeader Long memberId) {
-        List<OrderInformationDto> orderInformationDto = orderService.getOrderListDsl(memberId);
+    public Response orderListDsl(@RequestHeader Long memberId, @RequestParam int page) {
+        PagingOrderInformationDto orderInformationDto = orderService.getOrderListDsl(memberId, page - 1);
         return Response.success(orderInformationDto);
     }
 

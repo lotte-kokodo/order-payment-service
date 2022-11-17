@@ -13,15 +13,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StopWatch;
 import shop.kokodo.orderservice.dto.request.CartOrderDto;
 import shop.kokodo.orderservice.dto.request.SingleProductOrderDto;
-import shop.kokodo.orderservice.dto.response.OrderDetailInformationDto;
-import shop.kokodo.orderservice.dto.response.OrderInformationDto;
-import shop.kokodo.orderservice.dto.response.OrderProductDslDto;
-import shop.kokodo.orderservice.dto.response.OrderProductThumbnailDto;
+import shop.kokodo.orderservice.dto.response.*;
 import shop.kokodo.orderservice.entity.Cart;
 import shop.kokodo.orderservice.entity.Order;
 import shop.kokodo.orderservice.entity.OrderProduct;
@@ -243,10 +241,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional(readOnly = false)
     @Override
-    public List<OrderInformationDto> getOrderList(Long memberId) {
-        StopWatch stopWatch = new StopWatch();
-        stopWatch.start();
-        List<Order> orderList = orderRepository.findAllByMemberId(memberId);
+    public PagingOrderInformationDto getOrderList(Long memberId, int page) {
+        Page<Order> orderPage = orderRepository.findAllByMemberId(memberId, PageRequest.of(page,5));
+        List<Order> orderList = orderPage.get().collect(Collectors.toList());
 
         List<OrderProductThumbnailDto> orderProductThumbnailDtoList = orderProductRepository.findAllByOrderIdIn(
                 orderList.stream()
@@ -269,6 +266,7 @@ public class OrderServiceImpl implements OrderService {
         for (int i=0;i< orderProductThumbnailDtoList.size();i++) {
             Long productId = productIdList.get(i);
             ProductThumbnailDto product = productList.get(productId);
+
             if(product != null) {
                 response.add(OrderInformationDto.builder()
                         .orderId(orderList.get(i).getId())
@@ -282,17 +280,18 @@ public class OrderServiceImpl implements OrderService {
             }
         }
         log.info("response : " + response);
-        stopWatch.stop();
-        System.out.println(stopWatch.prettyPrint());
-        return response;
+
+        return PagingOrderInformationDto.builder()
+                .orderInformationDtoList(response)
+                .totalCount(orderPage.getTotalElements())
+                .build();
     }
 
     @Transactional(readOnly = false)
     @Override
-    public List<OrderInformationDto> getOrderListDsl(Long memberId) {
-        StopWatch stopWatch = new StopWatch();
-        stopWatch.start();
-        List<Order> orderList = orderRepository.findAllByMemberId(memberId);
+    public PagingOrderInformationDto getOrderListDsl(Long memberId, int page) {
+        Page<Order> orderPage = orderRepository.findAllByMemberId(memberId, PageRequest.of(page,5));
+        List<Order> orderList = orderPage.get().collect(Collectors.toList());
 
         List<Long> orderIdList = orderList.stream()
                 .map(Order::getId)
@@ -327,9 +326,11 @@ public class OrderServiceImpl implements OrderService {
             }
         }
         log.info("response : " + response);
-        stopWatch.stop();
-        System.out.println(stopWatch.prettyPrint());
-        return response;
+
+        return PagingOrderInformationDto.builder()
+                .orderInformationDtoList(response)
+                .totalCount(orderPage.getTotalElements())
+                .build();
     }
 
 
