@@ -11,8 +11,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -33,7 +31,7 @@ import shop.kokodo.orderservice.feign.response.OrderMemberDto;
 import shop.kokodo.orderservice.feign.response.OrderProductDto;
 import shop.kokodo.orderservice.feign.response.RateCouponDto;
 import shop.kokodo.orderservice.kafka.KafkaProducer;
-import shop.kokodo.orderservice.kafka.dto.CouponNameDto;
+import shop.kokodo.orderservice.kafka.dto.KafkaOrderDto.KafkaCouponNameDto;
 import shop.kokodo.orderservice.repository.interfaces.CartRepository;
 import shop.kokodo.orderservice.repository.interfaces.OrderRepository;
 import shop.kokodo.orderservice.service.utils.ProductPriceCalculator;
@@ -189,7 +187,7 @@ class OrderServiceImplTest {
         @DisplayName("비율&정책쿠폰이 적용되지 않은 경우")
         void OrderCouponStatus_RateCouponIdAndFixCouponIdNull() {
             // when
-            CouponNameDto result = orderService.getValidCouponNameDto(memberId, null, null, emptyRateCouponDtoMap);
+            KafkaCouponNameDto result = orderService.getValidCouponNameDto(memberId, null, null, emptyRateCouponDtoMap);
 
             // then
             assertNull(result);
@@ -200,7 +198,7 @@ class OrderServiceImplTest {
         @DisplayName("비율할인쿠폰만 적용된 경우")
         void OrderCouponStatus_RateCouponNotNull() {
             // when
-            CouponNameDto result = orderService.getValidCouponNameDto(memberId, rateCouponAId, null, rateCouponADtoMap);
+            KafkaCouponNameDto result = orderService.getValidCouponNameDto(memberId, rateCouponAId, null, rateCouponADtoMap);
             // then
             assertEquals(result.getRateCouponNames().get(0), rateCouponAName);
         }
@@ -210,17 +208,17 @@ class OrderServiceImplTest {
         @DisplayName("고정할인쿠폰만 적용된 경우")
         void OrderCouponStatus_FixCouponNotNull() {
             // when
-            CouponNameDto result = orderService.getValidCouponNameDto(memberId, null, fixCouponAId, rateCouponADtoMap);
+            KafkaCouponNameDto result = orderService.getValidCouponNameDto(memberId, null, fixCouponAId, rateCouponADtoMap);
             // then
-            assertEquals(result.getFixCouponIds().size(), 1);
-            assertEquals(result.getFixCouponIds().get(0), fixCouponAId);
+            assertEquals(result.getFixCouponIdList().size(), 1);
+            assertEquals(result.getFixCouponIdList().get(0), fixCouponAId);
         }
 
         @Test
         @DisplayName("비율&정책쿠폰리스트가 모두 비어있는 경우 (쿠폰이 하나라도 적용되지 않은 경우)")
         void OrderCouponStatus_RateCouponIdListAndFixCouponIdListNull() {
             // when
-            CouponNameDto result = orderService.getValidCouponNameDto(memberId, new ArrayList<>(), new ArrayList<>(), emptyRateCouponDtoMap);
+            KafkaCouponNameDto result = orderService.getValidCouponNameDto(memberId, new ArrayList<>(), new ArrayList<>(), emptyRateCouponDtoMap);
 
             // then
             assertNull(result);
@@ -230,7 +228,7 @@ class OrderServiceImplTest {
         @DisplayName("비율쿠폰리스트만 있는 경우 (쿠폰이 하나라도 적용된 경우)")
         void OrderCouponStatus_RateCouponIdListNotNull() {
             // when
-            CouponNameDto result = orderService.getValidCouponNameDto(memberId, rateCouponIds, new ArrayList<>(), rateCouponDtoMap);
+            KafkaCouponNameDto result = orderService.getValidCouponNameDto(memberId, rateCouponIds, new ArrayList<>(), rateCouponDtoMap);
 
             // then
             assertEquals(result.getRateCouponNames().size(), 2);
@@ -242,9 +240,9 @@ class OrderServiceImplTest {
         @DisplayName("정책쿠폰리스트만 있는 경우 (쿠폰이 하나라도 적용된 경우)")
         void OrderCouponStatus_FixCouponIdListNotNull() {
             // when
-            CouponNameDto result = orderService.getValidCouponNameDto(memberId, new ArrayList<>(), fixCouponIds, emptyRateCouponDtoMap);
+            KafkaCouponNameDto result = orderService.getValidCouponNameDto(memberId, new ArrayList<>(), fixCouponIds, emptyRateCouponDtoMap);
             // then
-            assertEquals(result.getFixCouponIds(), fixCouponIds);
+            assertEquals(result.getFixCouponIdList(), fixCouponIds);
             assertEquals(result.getRateCouponNames().size(), 0);
         }
 

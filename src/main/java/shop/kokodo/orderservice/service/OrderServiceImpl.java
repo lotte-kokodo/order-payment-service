@@ -36,7 +36,8 @@ import shop.kokodo.orderservice.feign.response.ProductThumbnailDto;
 import shop.kokodo.orderservice.feign.response.RateCouponDto;
 import shop.kokodo.orderservice.feign.response.RateDiscountPolicyDto;
 import shop.kokodo.orderservice.kafka.KafkaProducer;
-import shop.kokodo.orderservice.kafka.dto.CouponNameDto;
+import shop.kokodo.orderservice.kafka.dto.KafkaOrderDto;
+import shop.kokodo.orderservice.kafka.dto.KafkaOrderDto.KafkaCouponNameDto;
 import shop.kokodo.orderservice.repository.interfaces.CartRepository;
 import shop.kokodo.orderservice.repository.interfaces.OrderProductRepository;
 import shop.kokodo.orderservice.repository.interfaces.OrderRepository;
@@ -131,15 +132,12 @@ public class OrderServiceImpl implements OrderService {
         Order order = Order.createOrder(memberId, orderMemberDto.getName(), orderMemberDto.getAddress(), totalPrice, orderProducts);
         orderRepository.save(order);
 
-        kafkaProducer.send("product-decrease-stock", new LinkedHashMap<>() {{
-            put(productId, qty);
-        }});
+        Map<Long, Integer> productStockMap = new LinkedHashMap<>() {{ put(productId, qty); }};
+        KafkaCouponNameDto kafkaCouponNameDto = getValidCouponNameDto(memberId, rateCouponId, fixCouponId, rateCouponMap);
+        KafkaOrderDto kafkaOrderDto = new KafkaOrderDto(order.getId(), productStockMap, kafkaCouponNameDto);
 
-        // 쿠폰 상태 변경
-        CouponNameDto couponNameDto = getValidCouponNameDto(memberId, rateCouponId, fixCouponId, rateCouponMap);
-        if (couponNameDto != null) {
-            kafkaProducer.send("promotion-coupon-status", couponNameDto);
-        }
+        // 상품 재고 감소
+        kafkaProducer.send("product-decrease-stock", kafkaOrderDto);
 
         return order;
     }
@@ -191,22 +189,19 @@ public class OrderServiceImpl implements OrderService {
         carts.forEach((cart -> cart.changeStatus(CartStatus.ORDER_PROCESS)));
         cartRepository.saveAll(carts);
 
-        // 상품 재고 감소
-        Map<Long, Integer> productIdQtyMap = carts.stream()
+        Map<Long, Integer> productStockMap = carts.stream()
                 .collect(Collectors.toMap(Cart::getProductId, Cart::getQty));
-        kafkaProducer.send("product-decrease-stock", productIdQtyMap);
+        KafkaCouponNameDto kafkaCouponNameDto = getValidCouponNameDto(memberId, rateCouponIds, fixCouponIds, rateCouponMap);
+        KafkaOrderDto kafkaOrderDto = new KafkaOrderDto(order.getId(), productStockMap, kafkaCouponNameDto);
 
-        // 쿠폰 상태 변경
-        CouponNameDto couponNameDto = getValidCouponNameDto(memberId, rateCouponIds, fixCouponIds, rateCouponMap);
-        if (couponNameDto != null) {
-            kafkaProducer.send("promotion-coupon-status", couponNameDto);
-        }
+        // 상품 재고 감소
+        kafkaProducer.send("product-decrease-stock", kafkaOrderDto);
         return order;
     }
 
     // 쿠폰 아이디 NULL 체크
     // 쿠폰 아이디 리스트 NULL 체크
-    public CouponNameDto getValidCouponNameDto(Long memberId,
+    public KafkaCouponNameDto getValidCouponNameDto(Long memberId,
         Object rateCouponId, Object fixCouponId,
         Map<Long, RateCouponDto> rateCouponMap) {
 
@@ -228,15 +223,15 @@ public class OrderServiceImpl implements OrderService {
             }
 
             // 비율-고정 쿠폰 중 하나의 쿠폰이라도 선택됐다면,
-            return new CouponNameDto(memberId, fixCouponIds, rateCouponNames);
+            return new KafkaCouponNameDto(memberId, fixCouponIds, rateCouponNames);
         }
 
         // 비율쿠폰만 적용됐다면,
         if (rateCouponId != null) {
-            return new CouponNameDto(memberId, new ArrayList<>(), rateCouponNames);
+            return new KafkaCouponNameDto(memberId, new ArrayList<>(), rateCouponNames);
         }
         else {
-            return new CouponNameDto(memberId, List.of((Long) fixCouponId), rateCouponNames);
+            return new KafkaCouponNameDto(memberId, List.of((Long) fixCouponId), rateCouponNames);
         }
 
     }

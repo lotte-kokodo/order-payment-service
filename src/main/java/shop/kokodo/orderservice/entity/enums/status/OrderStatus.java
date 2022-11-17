@@ -6,7 +6,7 @@ public enum OrderStatus implements EnumType {
 
     ORDER_SUCCESS("주문/결제 완료"),
     PURCHASE_CONFIRM("구매 확정"),
-    REFUND_PROCESS("환불 진행");
+    ORDER_ERROR("주문 오류");
 
     private String value;
 

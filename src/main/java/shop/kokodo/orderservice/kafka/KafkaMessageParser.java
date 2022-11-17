@@ -21,7 +21,7 @@ public class KafkaMessageParser {
             return objectMapper.readValue(message, typeRef);
         } catch (JsonProcessingException ex) {
             ex.printStackTrace();
-            throw new IllegalArgumentException("");
+            throw new IllegalArgumentException("Kafka 메시지 파싱 오류");
         }
     }
 
