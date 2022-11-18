@@ -23,14 +23,16 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create
+    properties:
+      hibernate:
+        physical_naming_strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    driver-class-name: com.mysql.jdbc.Driver
     url:
     slave-list:
-      - name: slave-1
-        url:
-      - name: slave-2
-        url:
+      slave1:
+      slave2:
     username:
     password:
 
