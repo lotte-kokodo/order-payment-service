@@ -382,7 +382,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     @Override
     public Map<Long, List<Integer>> getProductAllPrice(List<Long> productIdList) {
-
+        log.info("productIdList" + productIdList);
         Calendar cal = Calendar.getInstance(Locale.KOREA);
         LocalDateTime startDate = getDate("start");
         LocalDateTime endDate = getDate("end");

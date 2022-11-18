@@ -24,7 +24,7 @@ public interface OrderProductRepository extends CrudRepository<OrderProduct, Lon
     List<OrderProduct> findAllByIdAndMemberId(Long memberId, Long orderId);
 
     @Query(value = "SELECT op FROM OrderProduct op WHERE " +
-            "op.order.orderDate BETWEEN :startDate AND :endDate AND " +
+            ":startDate <= op.order.orderDate AND op.order.orderDate <= :endDate AND " +
             "op.productId IN (:productIdList)")
     List<OrderProduct> findByProductIdListAndSellerId(List<Long> productIdList, LocalDateTime startDate, LocalDateTime endDate);
 }
