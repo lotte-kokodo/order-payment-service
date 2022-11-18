@@ -27,9 +27,18 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     //zipkin
+<<<<<<< Updated upstream
     implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
     implementation 'org.springframework.cloud:spring-cloud-starter-zipkin:2.2.2.RELEASE'
+<<<<<<< Updated upstream
 
+=======
+=======
+//    implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
+//    implementation 'org.springframework.cloud:spring-cloud-starter-zipkin:2.2.2.RELEASE'
+
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
     //circuitbreaker
 //    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix'
     implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j'
