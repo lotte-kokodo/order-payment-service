@@ -268,10 +268,11 @@ public class OrderServiceImpl implements OrderService {
             ProductThumbnailDto product = productList.get(productId);
 
             String name = "";
-            if(orderProductThumbnailDtoList.get(i).getCount() == 1) name = product.getName();
-            else name = product.getName() + " 외 " + orderProductThumbnailDtoList.get(i).getCount() + "건";
 
             if(product != null) {
+                if(orderProductThumbnailDtoList.get(i).getCount() == 1) name = product.getName();
+                else name = product.getName() + " 외 " + orderProductThumbnailDtoList.get(i).getCount() + "건";
+
                 response.add(OrderInformationDto.builder()
                         .orderId(orderList.get(i).getId())
                         .name(name)
