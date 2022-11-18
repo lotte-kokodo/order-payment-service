@@ -10,10 +10,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import shop.kokodo.orderservice.dto.request.CartDto;
+import shop.kokodo.orderservice.dto.request.CartRequestDto;
 import shop.kokodo.orderservice.controller.response.Response;
 import shop.kokodo.orderservice.dto.response.CartAvailableQtyDto;
 import shop.kokodo.orderservice.dto.request.CartQtyDto;
+import shop.kokodo.orderservice.dto.response.CartResponseDto;
 import shop.kokodo.orderservice.entity.Cart;
 import shop.kokodo.orderservice.message.MessageFormat;
 import shop.kokodo.orderservice.service.interfaces.CartService;
@@ -32,7 +33,7 @@ public class CartController {
 
     /* 장바구니 상품 생성 API */
     @PostMapping
-    public Response createCart(@Valid @RequestBody CartDto req) {
+    public Response createCart(@Valid @RequestBody CartRequestDto req) {
 
         Cart cart = cartService.createCart(req);
 
@@ -43,7 +44,7 @@ public class CartController {
     @GetMapping
     public Response getCarts(@RequestHeader Long memberId) {
 
-        Map<Long, List<shop.kokodo.orderservice.dto.response.CartDto>> carts = cartService.getCarts(memberId);
+        Map<Long, List<CartResponseDto>> carts = cartService.getCarts(memberId);
 
         return Response.success(carts);
     }

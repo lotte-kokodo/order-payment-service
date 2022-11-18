@@ -9,7 +9,7 @@ import shop.kokodo.orderservice.feign.response.CartProductDto;
 
 @Getter @ToString
 @NoArgsConstructor
-public class CartDto {
+public class CartResponseDto {
     private Long cartId;
     private Long productId;
     private String productThumbnail;
@@ -19,12 +19,12 @@ public class CartDto {
     private Long sellerId;
 
 
-    public static CartDto create (Cart cart, CartProductDto cartProductDto) {
-        return new CartDto(cart, cartProductDto);
+    public static CartResponseDto create (Cart cart, CartProductDto cartProductDto) {
+        return new CartResponseDto(cart, cartProductDto);
     }
 
     @Builder
-    public CartDto(Cart cart, CartProductDto cartProductDto) {
+    public CartResponseDto(Cart cart, CartProductDto cartProductDto) {
         if (cartProductDto == null) {
             this.cartId = cart.getId();
             this.productId = -1L;
