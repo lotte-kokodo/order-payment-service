@@ -5,13 +5,7 @@ import java.util.Map;
 import javax.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import shop.kokodo.orderservice.aop.MemberInfoCheck;
 import shop.kokodo.orderservice.dto.request.CartOrderDto;
 import shop.kokodo.orderservice.dto.request.SingleProductOrderDto;
@@ -55,8 +49,8 @@ public class OrderController {
      * @param memberId
      * @return 주문 정보 리스트
      */
-    @GetMapping("/{memberId}")
-    public Response orderList(@PathVariable("memberId") Long memberId) {
+    @GetMapping("/")
+    public Response orderList(@RequestHeader Long memberId) {
         List<OrderInformationDto> orderInformationDto = orderService.getOrderList(memberId);
         return Response.success(orderInformationDto);
     }
@@ -66,8 +60,8 @@ public class OrderController {
      * @param memberId
      * @return 주문 정보 리스트
      */
-    @GetMapping("/{memberId}/querydsl")
-    public Response orderListDsl(@PathVariable("memberId") Long memberId) {
+    @GetMapping("/querydsl")
+    public Response orderListDsl(@RequestHeader Long memberId) {
         List<OrderInformationDto> orderInformationDto = orderService.getOrderListDsl(memberId);
         return Response.success(orderInformationDto);
     }
@@ -78,8 +72,8 @@ public class OrderController {
      * @param orderId
      * @return 주문 상세 정보 리스트
      */
-    @GetMapping("/{memberId}/{orderId}")
-    public List<OrderDetailInformationDto> orderDetailList(@PathVariable("memberId")Long memberId, @PathVariable("orderId")Long orderId) {
+    @GetMapping("/{orderId}")
+    public List<OrderDetailInformationDto> orderDetailList(@RequestHeader Long memberId, @PathVariable("orderId")Long orderId) {
         List<OrderDetailInformationDto> orderDetailInformationDtoList = orderService.getOrderDetailList(memberId, orderId);
         return orderDetailInformationDtoList;
     }

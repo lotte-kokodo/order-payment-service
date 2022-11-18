@@ -19,7 +19,7 @@ public interface ProductServiceClient {
      * 단일상품 주문을 위한 상품 조회 API
      */
     @GetMapping("/singleOrderProduct")
-    OrderProductDto getSingleOrderProduct(@PathVariable Long productId);
+    OrderProductDto getSingleOrderProduct(@RequestParam Long productId);
 
     /**
      * 장바구니상품 주문을 위한 상품조회 API
