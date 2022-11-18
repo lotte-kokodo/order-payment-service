@@ -76,7 +76,7 @@ public class DbConfig {
     @Bean
     public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
         EntityManagerFactoryBuilder entityManagerFactoryBuilder = createEntityManagerFactoryBuilder(jpaProperties);
-        return entityManagerFactoryBuilder.dataSource(dataSource()).packages("shop.kokodo.productservice").build();
+        return entityManagerFactoryBuilder.dataSource(dataSource()).packages("shop.kokodo.orderservice").build();
     }
 
     private EntityManagerFactoryBuilder createEntityManagerFactoryBuilder(JpaProperties jpaProperties) {
