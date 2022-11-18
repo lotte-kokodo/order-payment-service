@@ -256,11 +256,13 @@ public class OrderServiceImpl implements OrderService {
                 .map(OrderProductThumbnailDto::getProductId)
                 .collect(Collectors.toList());
 
+        log.info("productIdList : " + productIdList);
         CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitbreaker");
         Map<Long, ProductThumbnailDto> productList = circuitBreaker.run(
                 () -> productServiceClient.getProductListMap(productIdList),
                 throwable -> new HashMap<Long, ProductThumbnailDto>()
         );
+        log.info("productList : " + productList);
 
         List<OrderInformationDto> response = new ArrayList<>();
         for (int i=0;i< orderProductThumbnailDtoList.size();i++) {
