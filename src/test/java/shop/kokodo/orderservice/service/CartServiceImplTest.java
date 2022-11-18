@@ -16,7 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import shop.kokodo.orderservice.dto.response.CartDto;
+import shop.kokodo.orderservice.dto.response.CartResponseDto;
 import shop.kokodo.orderservice.entity.Cart;
 import shop.kokodo.orderservice.entity.enums.status.CartStatus;
 import shop.kokodo.orderservice.feign.client.ProductServiceClient;
@@ -102,7 +102,7 @@ class CartServiceImplTest {
             when(productServiceClient.getOrderProducts(productIds)).thenReturn(productMap);
 
             // [key] 판매자아이디 [value] 판매자상품리스트
-            Map<Long, List<CartDto>> sellerCartListMap = cartService.getCarts(memberId);
+            Map<Long, List<CartResponseDto>> sellerCartListMap = cartService.getCarts(memberId);
 
             // then
             Assertions.assertEquals(sellerCartListMap.get(sellerA).size(), 2);

@@ -12,7 +12,7 @@ import shop.kokodo.orderservice.message.DtoValidationMessage;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CartDto {
+public class CartRequestDto {
 
     @NotNull(message = DtoValidationMessage.MEMBER_ID_NULL)
     private Long memberId;
