@@ -212,8 +212,8 @@ class OrderServiceImplTest {
             // when
             CouponNameDto result = orderService.getValidCouponNameDto(memberId, null, fixCouponAId, rateCouponADtoMap);
             // then
-            assertEquals(result.getFixCouponIds().size(), 1);
-            assertEquals(result.getFixCouponIds().get(0), fixCouponAId);
+            assertEquals(result.getFixCouponIdList().size(), 1);
+            assertEquals(result.getFixCouponIdList().get(0), fixCouponAId);
         }
 
         @Test
@@ -244,7 +244,7 @@ class OrderServiceImplTest {
             // when
             CouponNameDto result = orderService.getValidCouponNameDto(memberId, new ArrayList<>(), fixCouponIds, emptyRateCouponDtoMap);
             // then
-            assertEquals(result.getFixCouponIds(), fixCouponIds);
+            assertEquals(result.getFixCouponIdList(), fixCouponIds);
             assertEquals(result.getRateCouponNames().size(), 0);
         }
 
