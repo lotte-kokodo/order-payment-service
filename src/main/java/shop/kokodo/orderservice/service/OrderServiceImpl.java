@@ -239,7 +239,7 @@ public class OrderServiceImpl implements OrderService {
 
     }
 
-    @Transactional(readOnly = false)
+    @Transactional(readOnly = true)
     @Override
     public PagingOrderInformationDto getOrderList(Long memberId, int page) {
         Page<Order> orderPage = orderRepository.findAllByMemberId(memberId, PageRequest.of(page,5));
@@ -294,7 +294,7 @@ public class OrderServiceImpl implements OrderService {
                 .build();
     }
 
-    @Transactional(readOnly = false)
+    @Transactional(readOnly = true)
     @Override
     public PagingOrderInformationDto getOrderListDsl(Long memberId, int page) {
         Page<Order> orderPage = orderRepository.findAllByMemberId(memberId, PageRequest.of(page,5));
@@ -346,7 +346,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
-    @Transactional(readOnly = false)
+    @Transactional(readOnly = true)
     @Override
     public List<OrderDetailInformationDto> getOrderDetailList(Long memberId, Long orderId) {
         List<OrderProduct> orderProductList = orderProductRepository.findAllByIdAndMemberId(memberId, orderId);
@@ -386,8 +386,12 @@ public class OrderServiceImpl implements OrderService {
         Calendar cal = Calendar.getInstance(Locale.KOREA);
         LocalDateTime startDate = getDate("start");
         LocalDateTime endDate = getDate("end");
+        log.info("startDate : " + startDate);
+        log.info("endDate : " + endDate);
 
         List<OrderProduct> orderPriceDtoList = orderProductRepository.findByProductIdListAndSellerId(productIdList, startDate, endDate);
+        log.info("orderPriceDtoList : " + orderPriceDtoList);
+
         Map<Long, List<Integer>> result = new HashMap<>();
         for(OrderProduct orderProduct : orderPriceDtoList) {
             List<Integer> list = new ArrayList<>();
@@ -395,6 +399,7 @@ public class OrderServiceImpl implements OrderService {
             list.add(orderProduct.getQty());
             result.put(orderProduct.getProductId(), list);
         }
+        log.info("result : " + result);
 
         return result;
     }
