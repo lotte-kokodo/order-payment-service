@@ -12,7 +12,7 @@ import lombok.Setter;
 public class CouponNameDto {
 
     long memberId;
-    List<Long> fixCouponIds;
+    List<Long> fixCouponIdList;
     List<String> rateCouponNames;
 
 }

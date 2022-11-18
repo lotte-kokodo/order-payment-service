@@ -13,9 +13,10 @@ import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import shop.kokodo.orderservice.dto.request.CartDto;
+import shop.kokodo.orderservice.dto.request.CartRequestDto;
 import shop.kokodo.orderservice.dto.response.CartAvailableQtyDto;
 import shop.kokodo.orderservice.dto.request.CartQtyDto;
+import shop.kokodo.orderservice.dto.response.CartResponseDto;
 import shop.kokodo.orderservice.entity.Cart;
 import shop.kokodo.orderservice.entity.enums.status.CartStatus;
 import shop.kokodo.orderservice.exception.api.ApiRequestException;
@@ -47,7 +48,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Transactional
-    public Cart createCart(CartDto req) {
+    public Cart createCart(CartRequestDto req) {
         Cart cart = Cart.builder()
             .memberId(req.getMemberId())
             .productId(req.getProductId())
@@ -61,7 +62,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public Map<Long, List<shop.kokodo.orderservice.dto.response.CartDto>> getCarts(Long memberId) {
+    public Map<Long, List<CartResponseDto>> getCarts(Long memberId) {
 
         List<Cart> carts = cartRepository.findAllByMemberIdAndCartStatus(memberId, CartStatus.IN_CART);
         List<Long> productIds = carts.stream().map(Cart::getProductId).collect(Collectors.toList());
@@ -69,14 +70,14 @@ public class CartServiceImpl implements CartService {
         Map<Long, CartProductDto> cartProductMap = runCircuitBreaker("getProductOfCartCB",
             () -> productServiceClient.getOrderProducts(productIds), throwable -> new HashMap<Long, CartProductDto>());
 
-        List<shop.kokodo.orderservice.dto.response.CartDto> allCartDto = carts.stream().map(cart -> shop.kokodo.orderservice.dto.response.CartDto.create(cart, cartProductMap.get(cart.getProductId())))
+        List<CartResponseDto> allCartResponseDto = carts.stream().map(cart -> CartResponseDto.create(cart, cartProductMap.get(cart.getProductId())))
             .collect(Collectors.toList());
 
-        Map<Long, List<shop.kokodo.orderservice.dto.response.CartDto>> sellerCartListMap = new HashMap<>();
-        allCartDto.forEach(cartDto -> {
+        Map<Long, List<CartResponseDto>> sellerCartListMap = new HashMap<>();
+        allCartResponseDto.forEach(cartDto -> {
             Long sellerId = cartDto.getSellerId();
 
-            List<shop.kokodo.orderservice.dto.response.CartDto> sellerCartList = sellerCartListMap.getOrDefault(sellerId, new ArrayList<>());
+            List<CartResponseDto> sellerCartList = sellerCartListMap.getOrDefault(sellerId, new ArrayList<>());
             if (sellerCartList.isEmpty()) {
                 sellerCartListMap.put(sellerId, sellerCartList);
             }
