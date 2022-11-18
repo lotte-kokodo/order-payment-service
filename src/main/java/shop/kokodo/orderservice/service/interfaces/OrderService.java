@@ -5,6 +5,7 @@ import shop.kokodo.orderservice.dto.request.CartOrderDto;
 import shop.kokodo.orderservice.dto.request.SingleProductOrderDto;
 import shop.kokodo.orderservice.dto.response.OrderDetailInformationDto;
 import shop.kokodo.orderservice.dto.response.OrderInformationDto;
+import shop.kokodo.orderservice.dto.response.PagingOrderInformationDto;
 import shop.kokodo.orderservice.entity.Order;
 
 import java.util.List;
@@ -19,9 +20,9 @@ public interface OrderService {
     Order orderCartProducts(CartOrderDto dto);
 
     /* 주문 조회 */
-    List<OrderInformationDto> getOrderList(Long memberId);
+    PagingOrderInformationDto getOrderList(Long memberId, int page);
 
-    List<OrderInformationDto> getOrderListDsl(Long memberId);
+    PagingOrderInformationDto getOrderListDsl(Long memberId, int page);
 
     /* 주문 상세 조회 */
     List<OrderDetailInformationDto> getOrderDetailList(Long memberId, Long orderId);
