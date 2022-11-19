@@ -404,6 +404,13 @@ public class OrderServiceImpl implements OrderService {
         return result;
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public Boolean findByMemberIdAndProductId(Long memberId, Long productId) {
+        List<OrderProduct> orderDto = orderProductRepository.findByMemberIdAndProductId(memberId, productId);
+        return !orderDto.isEmpty();
+    }
+
     LocalDateTime getDate(String flag) {
         Calendar cal = Calendar.getInstance(Locale.KOREA);
         //금주 시작 날짜

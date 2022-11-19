@@ -88,4 +88,15 @@ public class OrderController {
     public Map<Long, List<Integer>> findByProductId(@RequestParam List<Long> productIdList) {
         return orderService.getProductAllPrice(productIdList);
     }
+
+    /**
+     * 사용자가 상품을 주문한 적이 있는지 확인하는 API
+     * @param memberId
+     * @param productId
+     * @return member에 대한 product 주문 여부
+     */
+    @GetMapping("/check/{memberId}/{productId}")
+    public Boolean findByMemberIdAndProductId(@PathVariable Long memberId, @PathVariable Long productId) {
+        return orderService.findByMemberIdAndProductId(memberId, productId);
+    }
 }

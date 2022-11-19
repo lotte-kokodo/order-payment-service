@@ -29,4 +29,6 @@ public interface OrderService {
 
     /* 주문 금액 조회 */
     Map<Long, List<Integer>> getProductAllPrice(List<Long> productIdList);
+
+    Boolean findByMemberIdAndProductId(Long memberId, Long productId);
 }

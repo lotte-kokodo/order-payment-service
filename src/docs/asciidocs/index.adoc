@@ -11,8 +11,6 @@ endif::[]
 :toclevels: 2
 :sectlinks:
 
-link:calculate-modal-api.html[]
-
 // include::calculate-modal-api.adoc[]
 
 // include::{snippets}/calculate-modal/http-request.adoc[]
