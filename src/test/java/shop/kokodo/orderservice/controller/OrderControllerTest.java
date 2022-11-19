@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.validation.constraints.NotNull;
 import org.hibernate.Session;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -22,7 +23,9 @@ import javax.persistence.PersistenceContext;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import shop.kokodo.orderservice.dto.request.CartOrderDto;
 import shop.kokodo.orderservice.dto.request.SingleProductOrderDto;
+import shop.kokodo.orderservice.message.DtoValidationMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.restdocs.restassured3.RestAssuredRestDocumentation.document;
@@ -117,6 +120,7 @@ class OrderControllerTest extends DocumentConfiguration {
             .filter(document("order-single-product"))
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .when()
+            .header("memberId", 1)
             .request().body(reqBody)
             .get("/orders/singleProduct")
             .then().log().all().extract();
@@ -125,11 +129,33 @@ class OrderControllerTest extends DocumentConfiguration {
         assertThat(resp.statusCode()).isEqualTo(HttpStatus.OK.value());
     }
 
-//    @Test
-//    @DisplayName("장바구니 상품 주문")
-//    public void orderCartProduct() {
-//
-//    }
+    @Test
+    @DisplayName("장바구니 상품 주문")
+    public void orderCartProduct() {
+
+        // given
+        Long memberId = 1L;
+        List<Long> cartIds = List.of(1L, 2L, 3L);
+        List<Long> rateCouponIds = List.of(1L, 2L, 3L);
+        List<Long> fixCouponIds = List.of(1L, 2L, 3L);
+
+        CartOrderDto reqBody = new CartOrderDto(memberId, cartIds, rateCouponIds,fixCouponIds);
+
+        // when
+        final ExtractableResponse<Response> resp = RestAssured
+            .given(spec).log().all()
+            .filter(document("order-cart"))
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .when()
+            .header("memberId", 1)
+            .request().body(reqBody)
+            .get("/orders/singleProduct")
+            .then().log().all().extract();
+
+        // then
+        assertThat(resp.statusCode()).isEqualTo(HttpStatus.OK.value());
+
+    }
 
 
 //    @DisplayName("정산 예정날짜 조회")

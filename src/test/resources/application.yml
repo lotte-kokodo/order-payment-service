@@ -1,4 +1,15 @@
 spring:
+  application:
+    name: order-service
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+        storage_engine: innodb
+        format_sql: true
+        globally_quoted_identifiers: true
 
   zipkin:
     base-url: http://127.0.0.1:9411

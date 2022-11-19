@@ -24,6 +24,7 @@ import shop.kokodo.orderservice.dto.request.CartOrderDto;
 import shop.kokodo.orderservice.dto.request.SingleProductOrderDto;
 import shop.kokodo.orderservice.entity.Cart;
 import shop.kokodo.orderservice.entity.Order;
+import shop.kokodo.orderservice.entity.OrderProduct;
 import shop.kokodo.orderservice.entity.enums.status.CartStatus;
 import shop.kokodo.orderservice.entity.enums.status.OrderStatus;
 import shop.kokodo.orderservice.feign.client.MemberServiceClient;
@@ -68,7 +69,7 @@ class OrderServiceImplTest {
 
 
     @Test
-    @DisplayName("(단일상품) 유효한 상품 아이디가 들어갔을 때 모든 값이 채워진 주문 객체 리턴")
+    @DisplayName("(단일상품) 유효한 상품 아이디가 들어갔을 때 주문 객체 리턴")
     void SingleProduct_Input_ValidProductId_Output_OrderObject() {
         // given
         Long memberId = 1L;
@@ -84,6 +85,9 @@ class OrderServiceImplTest {
         String address = "서울특별시 서초구 서초동 1327-33";
         String name = "Nayeon Kwon";
 
+        OrderProduct orderProduct = new OrderProduct();
+        Order order = Order.createOrder(memberId, address, name, totalPrice, List.of(orderProduct));
+
 
         // Feign Product
         OrderProductDto orderProductDto = new OrderProductDto(productId, price, sellerId);
@@ -95,20 +99,17 @@ class OrderServiceImplTest {
         when(memberServiceClient.getOrderMember(memberId))
             .thenReturn(orderMemberDto);
 
-        when(orderRepository.save(any(Order.class))).thenReturn(any(Order.class));
+        when(orderRepository.save(any(Order.class))).thenReturn(order);
 
         // when
         Order result = orderService.orderSingleProduct(new SingleProductOrderDto(memberId, productId, sellerId, qty, rateCouponId, fixCouponId));
 
         // then
         assertEquals(result.getTotalPrice(), 75000);
-        assertEquals(result.getOrderStatus(), OrderStatus.ORDER_SUCCESS);
-
-        System.out.println(String.format("[주문상태] %s", OrderStatus.ORDER_SUCCESS));
     }
 
     @Test
-    @DisplayName("(장바구니상품) 유효한 상품 아이디가 들어갔을 때 모든 값이 채워진 주문 객체 리턴")
+    @DisplayName("(장바구니상품) 유효한 상품 아이디가 들어갔을 때 주문 객체 리턴")
     void CartProduct_Input_ValidProductId_Output_OrderObject() {
         // given
 
@@ -144,16 +145,18 @@ class OrderServiceImplTest {
         String name = "NaYeon Kwon";
         OrderMemberDto memberOrderDto = new OrderMemberDto(address, name);
 
+        OrderProduct orderProduct = new OrderProduct();
+        Order order = Order.createOrder(memberId, address, name, totalPrice, List.of(orderProduct));
+
         when(cartRepository.findByIdIn(cartIds)).thenReturn(carts);
         when(memberServiceClient.getOrderMember(memberId)).thenReturn(memberOrderDto);
-
+        when(orderRepository.save(any(Order.class))).thenReturn(order);
 
         // when
         Order result = orderService.orderCartProducts(cartOrderDto);
 
         // then
         assertEquals(result.getTotalPrice(), totalPrice);
-        assertEquals(result.getOrderStatus(), OrderStatus.ORDER_SUCCESS);
 
         System.out.println(String.format("[주문상태] %s", OrderStatus.ORDER_SUCCESS));
     }
