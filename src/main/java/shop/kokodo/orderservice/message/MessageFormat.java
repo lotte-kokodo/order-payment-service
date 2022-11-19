@@ -12,4 +12,7 @@ public class MessageFormat {
 
     public static final String INCREASE_CART_QTY_SUCCESS = "장바구니 상품 수량 증가 성공";
     public static final String DECREASE_CART_QTY_SUCCESS = "장바구니 상품 수량 감소 성공";
+
+    public static final String DELETE_CART_SUCCESS = "장바구니 상품 삭제 성공";
+
 }

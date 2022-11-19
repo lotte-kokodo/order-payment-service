@@ -4,11 +4,14 @@ import java.util.List;
 import java.util.Map;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import shop.kokodo.orderservice.dto.request.CartRequestDto;
 import shop.kokodo.orderservice.controller.response.Response;
@@ -49,8 +52,16 @@ public class CartController {
         return Response.success(carts);
     }
 
+    /* 장바구니 상품 삭제 API */
+    @DeleteMapping
+    public Response deleteCarts(@RequestParam List<Long> cartIds) {
+        String message = cartService.deleteCarts(cartIds);
+
+        return Response.success(message);
+    }
+
     /* 장바구니 상품 수량 업데이트 API */
-    @PostMapping("/qty")
+    @PatchMapping("/qty")
     public Response updateQty(@Valid @RequestBody CartQtyDto req) {
         CartAvailableQtyDto updateCartQty = cartService.updateQty(req);
 
