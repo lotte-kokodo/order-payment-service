@@ -39,3 +39,21 @@ include::{snippets}/get-find-by-product-id/http-response.adoc[]
 include::{snippets}/get-find-by-product-id/httpie-request.adoc[]
 include::{snippets}/get-find-by-product-id/request-body.adoc[]
 include::{snippets}/get-find-by-product-id/response-body.adoc[]
+
+== orderSingleProduct
+단일상품 주문
+include::{snippets}/order-single-product/curl-request.adoc[]
+include::{snippets}/order-single-product/http-request.adoc[]
+include::{snippets}/order-single-product/http-response.adoc[]
+include::{snippets}/order-single-product/httpie-request.adoc[]
+include::{snippets}/order-single-product/request-body.adoc[]
+include::{snippets}/order-single-product/response-body.adoc[]
+
+== orderCartProduct
+장바구니 주문
+include::{snippets}/order-cart/curl-request.adoc[]
+include::{snippets}/order-cart/http-request.adoc[]
+include::{snippets}/order-cart/http-response.adoc[]
+include::{snippets}/order-cart/httpie-request.adoc[]
+include::{snippets}/order-cart/request-body.adoc[]
+include::{snippets}/order-cart/response-body.adoc[]
