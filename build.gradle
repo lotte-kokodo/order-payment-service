@@ -2,6 +2,7 @@ plugins {
     id 'org.springframework.boot' version '2.7.4'
     id 'io.spring.dependency-management' version '1.0.14.RELEASE'
     id 'java'
+    id "org.asciidoctor.jvm.convert" version "3.3.2"
 }
 
 group = 'shop.kokodo'
@@ -9,6 +10,7 @@ version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '11'
 
 configurations {
+    asciidoctorExtensions
     compileOnly {
         extendsFrom annotationProcessor
     }
@@ -21,6 +23,7 @@ repositories {
 ext {
     set('springCloudVersion', "2021.0.4")
     queryDslVersion = "5.0.0"
+    snippetsDir = file('build/generated-snippets')
 }
 
 dependencies {
@@ -69,7 +72,11 @@ dependencies {
 //    testImplementation 'org.junit.vintage:junit-vintage-engine'
 
     // restAssured
+    testImplementation group: 'org.springframework.restdocs', name: 'spring-restdocs-mockmvc', version: '2.0.4.RELEASE'
+    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
     testImplementation 'org.springframework.restdocs:spring-restdocs-restassured'
+    testImplementation 'io.rest-assured:rest-assured'
+    asciidoctorExtensions 'org.springframework.restdocs:spring-restdocs-asciidoctor'
 
     // QueryDsl
     implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
@@ -86,7 +93,38 @@ dependencyManagement {
 }
 
 tasks.named('test') {
+    outputs.dir snippetsDir
     useJUnitPlatform()
+}
+
+//==================Spring Rest docs==================
+test {
+    outputs.dir snippetsDir
+}
+
+asciidoctor {
+    dependsOn test
+    inputs.dir snippetsDir
+//    configurations 'asciidoctorExt'
+}
+
+task createDocument(type: Copy) {
+    dependsOn asciidoctor
+    asciidoctor
+    from file("build/docs/asciidoc")
+    into file("src/main/resources/static/docs")
+}
+
+//==================Spring Rest docs==================
+build {
+    dependsOn createDocument
+}
+
+bootJar {
+    dependsOn createDocument
+    from("${asciidoctor.outputDir}/html5") {
+        into 'static'
+    }
 }
 
 // QueryDSL

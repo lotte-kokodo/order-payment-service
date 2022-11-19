@@ -74,7 +74,7 @@ class OrderControllerTest extends DocumentConfiguration {
                 .when()
                 .request()
                 .header("memberId", 1)
-                .param("page", 0)
+                .param("page", 1)
                 .get("/orders/")
                 .then().log().all().extract();
         //then
