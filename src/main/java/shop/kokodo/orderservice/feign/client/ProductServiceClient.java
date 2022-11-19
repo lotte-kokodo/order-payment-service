@@ -3,10 +3,13 @@ package shop.kokodo.orderservice.feign.client;
 import java.util.List;
 import java.util.Map;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import shop.kokodo.orderservice.feign.request.OrderCountRequestDto;
+import shop.kokodo.orderservice.feign.response.ProductIdResponseDto;
 import shop.kokodo.orderservice.feign.response.OrderProductDto;
 import shop.kokodo.orderservice.feign.response.CartProductDto;
 import shop.kokodo.orderservice.feign.response.ProductStockDto;
@@ -48,8 +51,8 @@ public interface ProductServiceClient {
     /**
      * 판매자의 당일주문상품 개수 조회
      */
-    @GetMapping("/seller/{sellerId}/todayOrderCount")
-    Long getTodayOrderCount(@PathVariable Long sellerId, @RequestParam List<Long> productIds);
+    @PostMapping("/seller/orderCount")
+    ProductIdResponseDto getOrderCount(@RequestBody OrderCountRequestDto orderCountRequestDto);
 
     /**
      * 판매자의 당월상품 개수 조회를 위한 상품아이디리스트 조회

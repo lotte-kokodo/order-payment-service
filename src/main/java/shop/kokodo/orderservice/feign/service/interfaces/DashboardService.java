@@ -1,11 +1,11 @@
 package shop.kokodo.orderservice.feign.service.interfaces;
 
-import java.util.Map;
-import shop.kokodo.orderservice.feign.response.MonthlyOrderCountDto;
+import shop.kokodo.orderservice.feign.response.OrderCountResponseDto;
+import shop.kokodo.orderservice.feign.response.ProductIdResponseDto;
 
 public interface DashboardService {
 
-    Long getTodayOrderCount(Long sellerId);
+    OrderCountResponseDto getOrderCount(Long sellerId);
 
     Long[]  getMonthlyOrderCount(Long sellerId);
 }
