@@ -21,7 +21,8 @@ public interface OrderProductRepository extends CrudRepository<OrderProduct, Lon
 
     @Query(value = "SELECT op FROM OrderProduct AS op " +
             " WHERE op.memberId = :memberId" +
-            " AND op.order.id = :orderId ")
+            " AND op.order.id = :orderId " +
+            " ORDER BY op.order.orderDate DESC")
     List<OrderProduct> findAllByIdAndMemberId(Long memberId, Long orderId);
 
     @Query(value = "SELECT op FROM OrderProduct op WHERE " +
