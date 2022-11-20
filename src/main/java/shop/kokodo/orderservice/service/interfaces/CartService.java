@@ -16,6 +16,9 @@ public interface CartService {
     /* 장바구니 상품 조회 */
     Map<Long, List<CartResponseDto>> getCarts(Long memberId);
 
-    /* 장바구니 상품 수량 업데이트 API */
+    /* 장바구니 상품 조회 */
+    String deleteCarts(List<Long> cartIds);
+
+    /* 장바구니 상품 수량 업데이트 */
     CartAvailableQtyDto updateQty(CartQtyDto req);
 }

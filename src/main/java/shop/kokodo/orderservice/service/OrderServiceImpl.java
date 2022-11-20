@@ -160,7 +160,7 @@ public class OrderServiceImpl implements OrderService {
             .collect(Collectors.toList());
 
         Map<Long, Long> productSellerMap = orderProductDtoMap.values().stream()
-            .collect(Collectors.toMap(OrderProductDto::getId, OrderProductDto::getSellerId));
+            .collect(Collectors.toMap(OrderProductDto::getId, OrderProductDto::getSellerId, (product1, product2) -> product1));
         List<Long> productIds = new ArrayList<>();
         List<Long> sellerIds = new ArrayList<>();
         productSellerMap.keySet().forEach((productId) -> {
@@ -191,7 +191,7 @@ public class OrderServiceImpl implements OrderService {
 
         // 상품 재고 감소
         Map<Long, Integer> productIdQtyMap = carts.stream()
-                .collect(Collectors.toMap(Cart::getProductId, Cart::getQty));
+                .collect(Collectors.toMap(Cart::getProductId, Cart::getQty, Integer::sum));
         kafkaProducer.send("product-decrease-stock", productIdQtyMap);
 
         // 쿠폰 상태 변경

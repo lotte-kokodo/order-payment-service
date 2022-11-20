@@ -5,7 +5,8 @@ import shop.kokodo.orderservice.entity.enums.EnumType;
 public enum CartStatus implements EnumType {
 
     IN_CART("장바구니 상품"),
-    ORDER_PROCESS("주문 처리");
+    ORDER_PROCESS("주문 처리"),
+    DELETED("삭제된 장바구니");
 
     private String value;
 
