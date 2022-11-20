@@ -24,6 +24,7 @@ import shop.kokodo.orderservice.feign.client.ProductServiceClient;
 import shop.kokodo.orderservice.feign.response.CartProductDto;
 import shop.kokodo.orderservice.feign.response.ProductStockDto;
 import shop.kokodo.orderservice.message.ExceptionMessage;
+import shop.kokodo.orderservice.message.MessageFormat;
 import shop.kokodo.orderservice.repository.interfaces.CartRepository;
 import shop.kokodo.orderservice.service.interfaces.CartService;
 
@@ -61,6 +62,7 @@ public class CartServiceImpl implements CartService {
         return cart;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Map<Long, List<CartResponseDto>> getCarts(Long memberId) {
 
@@ -87,6 +89,16 @@ public class CartServiceImpl implements CartService {
         return sellerCartListMap;
     }
 
+    @Transactional(readOnly = false)
+    @Override
+    public String deleteCarts(List<Long> cartIds) {
+        List<Cart> carts = cartRepository.findByIdIn(cartIds);
+        carts.forEach((cart) -> cart.changeStatus(CartStatus.DELETED));
+        cartRepository.saveAll(carts);
+        return MessageFormat.DELETE_CART_SUCCESS;
+    }
+
+    @Transactional(readOnly = false)
     @Override
     public CartAvailableQtyDto updateQty(CartQtyDto req) {
         Long cartId = req.getCartId();
