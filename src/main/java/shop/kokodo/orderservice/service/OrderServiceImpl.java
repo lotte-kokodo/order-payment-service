@@ -273,7 +273,7 @@ public class OrderServiceImpl implements OrderService {
 
             if(product != null) {
                 if(orderProductThumbnailDtoList.get(i).getCount() == 1) name = product.getName();
-                else name = product.getName() + " 외 " + orderProductThumbnailDtoList.get(i).getCount() + "건";
+                else name = product.getName() + " 외 " + (orderProductThumbnailDtoList.get(i).getCount() - 1) + "건";
 
                 response.add(OrderInformationDto.builder()
                         .orderId(orderList.get(i).getId())
@@ -349,6 +349,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     @Override
     public List<OrderDetailInformationDto> getOrderDetailList(Long memberId, Long orderId) {
+        log.info("memberID : " + memberId + ", orderId : " + orderId);
         List<OrderProduct> orderProductList = orderProductRepository.findAllByIdAndMemberId(memberId, orderId);
         log.info("orderProductList : " + orderProductList.toString());
 
